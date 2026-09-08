@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+server/node_modules/
+.pnp
+.pnp.js
+
+# Environment variables & Secrets
+.env
+server/.env
+*.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.key
+*.pem
+*.crt
+*.p12
+*.keystore
+
+# Logs & Build outputs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dist/
+build/
+mobile/build/
+
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugin-dependencies
+.packages
+.pub-cache/
+.pub/
+ios/Pods/
+ios/.symlinks/
+
+# IDE / OS
+.DS_Store
+.vscode/
+.idea/
+*.swp
+

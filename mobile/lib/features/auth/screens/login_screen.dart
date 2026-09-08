@@ -1,0 +1,174 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../providers/auth_provider.dart';
+import '../../shared/widgets/custom_button.dart';
+import '../../shared/widgets/custom_text_field.dart';
+import '../../parent/parent_shell.dart';
+import '../../child/child_shell.dart';
+import '../../pairing/screens/child_pairing_screen.dart';
+import 'register_screen.dart';
+
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+
+  void _handleLogin() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final success = await authProvider.login(
+      _emailController.text.trim(),
+      _passwordController.text,
+    );
+
+    if (success && mounted) {
+      if (authProvider.isChild) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const ChildShell()),
+        );
+      } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const ParentShell()),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+
+    return Scaffold(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 32),
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.security,
+                      size: 48,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'GuardianX Login',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Sign in to your Parent or Child account',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey),
+                ),
+                const SizedBox(height: 36),
+                if (authProvider.errorMessage != null) ...[
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.critical.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.critical.withOpacity(0.3)),
+                    ),
+                    child: Text(
+                      authProvider.errorMessage!,
+                      style: const TextStyle(color: AppColors.critical, fontSize: 13),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                CustomTextField(
+                  controller: _emailController,
+                  label: 'Email Address',
+                  hint: 'parent@example.com',
+                  keyboardType: TextInputType.emailAddress,
+                  prefixIcon: const Icon(Icons.email_outlined),
+                  validator: (val) => val == null || val.isEmpty ? 'Please enter email' : null,
+                ),
+                const SizedBox(height: 16),
+                CustomTextField(
+                  controller: _passwordController,
+                  label: 'Password',
+                  hint: '••••••••',
+                  obscureText: true,
+                  prefixIcon: const Icon(Icons.lock_outlined),
+                  validator: (val) => val == null || val.isEmpty ? 'Please enter password' : null,
+                ),
+                const SizedBox(height: 24),
+                CustomButton(
+                  text: 'Sign In',
+                  onPressed: _handleLogin,
+                  isLoading: authProvider.status == AuthStatus.loading,
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("Don't have a family account? "),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                        );
+                      },
+                      child: const Text(
+                        'Register Parent',
+                        style: TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32),
+                const Divider(),
+                const SizedBox(height: 16),
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const ChildPairingScreen()),
+                    );
+                  },
+                  icon: const Icon(Icons.qr_code_scanner, color: AppColors.secondary),
+                  label: const Text(
+                    'Pair Child Device with Code',
+                    style: TextStyle(color: AppColors.secondary, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
