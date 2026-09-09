@@ -11,7 +11,6 @@ import '../../../providers/report_provider.dart';
 import '../../shared/widgets/status_badge.dart';
 
 import '../location/parent_location_screen.dart';
-import '../location/google_maps_location_card.dart';
 import '../geofences/geofence_management_screen.dart';
 import '../screen_time/parent_screen_time_screen.dart';
 import '../routines/parent_routines_screen.dart';
@@ -50,7 +49,6 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
     final authProvider = Provider.of<AuthProvider>(context);
     final childProvider = Provider.of<ChildProvider>(context);
     final alertProvider = Provider.of<AlertProvider>(context);
-    final locationProvider = Provider.of<LocationProvider>(context);
     final usageProvider = Provider.of<UsageProvider>(context);
     final reportProvider = Provider.of<ReportProvider>(context);
 
@@ -223,10 +221,40 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                // Google Maps Location Card
-                GoogleMapsLocationCard(
-                  location: locationProvider.latestLocation,
-                  childName: selectedChild.name,
+                // Compact Live Location Brief Shortcut Card
+                Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    side: BorderSide(color: AppColors.primary.withOpacity(0.15)),
+                  ),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    leading: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade50,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.location_on, color: Colors.red, size: 24),
+                    ),
+                    title: const Text(
+                      'Live Location & Google Maps',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                    subtitle: const Text(
+                      'Tap to view live map, address brief & Google Maps',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                    trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => ParentLocationScreen(childId: selectedChild.id),
+                        ),
+                      );
+                    },
+                  ),
                 ),
                 const SizedBox(height: 20),
 
