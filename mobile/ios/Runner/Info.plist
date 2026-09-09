@@ -80,5 +80,13 @@
 	</array>
 	<key>NSFaceIDUsageDescription</key>
 	<string>GuardianX uses Face ID and Touch ID to securely authenticate Parent logins.</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>https</string>
+		<string>http</string>
+		<string>comgooglemaps</string>
+		<string>maps</string>
+		<string>geo</string>
+	</array>
 </dict>
 </plist>

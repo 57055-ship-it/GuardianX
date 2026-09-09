@@ -95,23 +95,37 @@ class _GoogleMapsLocationCardState extends State<GoogleMapsLocationCard> {
     final loc = widget.location;
     if (loc == null) return;
 
-    final googleMapsUrl = Uri.parse(
-      'https://www.google.com/maps/search/?api=1&query=${loc.latitude},${loc.longitude}',
-    );
+    final lat = loc.latitude;
+    final lng = loc.longitude;
+
+    final googleUrl = Uri.parse('https://www.google.com/maps/search/?api=1&query=$lat,$lng');
+    final geoUrl = Uri.parse('geo:$lat,$lng?q=$lat,$lng');
 
     try {
-      final canLaunch = await canLaunchUrl(googleMapsUrl);
-      if (canLaunch) {
-        await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
-      } else {
-        await launchUrl(googleMapsUrl, mode: LaunchMode.platformDefault);
+      bool launched = false;
+      try {
+        launched = await launchUrl(googleUrl, mode: LaunchMode.externalApplication);
+      } catch (_) {}
+
+      if (!launched) {
+        try {
+          launched = await launchUrl(geoUrl, mode: LaunchMode.externalApplication);
+        } catch (_) {}
+      }
+
+      if (!launched) {
+        await launchUrl(googleUrl, mode: LaunchMode.platformDefault);
       }
     } catch (e) {
       debugPrint('[GoogleMapsLocationCard] Error opening Google Maps: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not launch Google Maps: http://maps.google.com/?q=${loc.latitude},${loc.longitude}')),
-        );
+      try {
+        await launchUrl(googleUrl, mode: LaunchMode.platformDefault);
+      } catch (_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Coordinates: $lat, $lng')),
+          );
+        }
       }
     }
   }

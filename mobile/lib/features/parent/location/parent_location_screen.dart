@@ -125,17 +125,22 @@ class _ParentLocationScreenState extends State<ParentLocationScreen> {
                                   icon: const Icon(Icons.map_outlined, size: 20, color: Colors.red),
                                   tooltip: 'Open in Google Maps',
                                   onPressed: () async {
-                                    final url = Uri.parse(
-                                      'https://www.google.com/maps/search/?api=1&query=${item.latitude},${item.longitude}',
-                                    );
+                                    final lat = item.latitude;
+                                    final lng = item.longitude;
+                                    final googleUrl = Uri.parse('https://www.google.com/maps/search/?api=1&query=$lat,$lng');
+                                    final geoUrl = Uri.parse('geo:$lat,$lng?q=$lat,$lng');
                                     try {
-                                      if (await canLaunchUrl(url)) {
-                                        await launchUrl(url, mode: LaunchMode.externalApplication);
-                                      } else {
-                                        await launchUrl(url, mode: LaunchMode.platformDefault);
+                                      bool launched = await launchUrl(googleUrl, mode: LaunchMode.externalApplication);
+                                      if (!launched) {
+                                        launched = await launchUrl(geoUrl, mode: LaunchMode.externalApplication);
+                                      }
+                                      if (!launched) {
+                                        await launchUrl(googleUrl, mode: LaunchMode.platformDefault);
                                       }
                                     } catch (e) {
-                                      debugPrint('Error launching maps: $e');
+                                      try {
+                                        await launchUrl(googleUrl, mode: LaunchMode.platformDefault);
+                                      } catch (_) {}
                                     }
                                   },
                                 ),
