@@ -41,6 +41,7 @@ class PairingProvider with ChangeNotifier {
     required String deviceName,
     required String deviceIdentifier,
     required String platform,
+    int? batteryLevel,
   }) async {
     _isLoading = true;
     _error = null;
@@ -52,6 +53,7 @@ class PairingProvider with ChangeNotifier {
         deviceName: deviceName,
         deviceIdentifier: deviceIdentifier,
         platform: platform,
+        batteryLevel: batteryLevel,
       );
       _isLoading = false;
       notifyListeners();

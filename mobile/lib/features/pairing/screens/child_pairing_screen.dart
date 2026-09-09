@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/services/api_client.dart';
+import '../../../core/services/device_service.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/pairing_provider.dart';
@@ -33,11 +35,15 @@ class _ChildPairingScreenState extends State<ChildPairingScreen> {
         ? 'web'
         : (Platform.isAndroid ? 'android' : (Platform.isIOS ? 'ios' : 'mobile'));
 
+    final apiClient = Provider.of<ApiClient>(context, listen: false);
+    final battery = await DeviceService(apiClient).getBatteryLevel();
+
     final result = await pairingProvider.joinCode(
       code: _codeController.text.trim().toUpperCase(),
       deviceName: _deviceNameController.text.trim(),
       deviceIdentifier: storageService.deviceIdentifier,
       platform: platformStr,
+      batteryLevel: battery,
     );
 
     if (result != null && mounted) {

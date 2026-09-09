@@ -19,6 +19,7 @@ class PairingRepository {
     required String deviceName,
     required String deviceIdentifier,
     required String platform,
+    int? batteryLevel,
   }) async {
     final response = await _apiClient.post(
       ApiConstants.joinPairing,
@@ -27,6 +28,7 @@ class PairingRepository {
         'deviceName': deviceName,
         'deviceIdentifier': deviceIdentifier,
         'platform': platform,
+        if (batteryLevel != null) 'batteryLevel': batteryLevel,
       },
       withAuth: false,
     );

@@ -66,7 +66,7 @@ exports.createPairingCode = async (req, res) => {
 // POST /api/pairing/join (Child enters pairing code to link device)
 exports.joinPairingCode = async (req, res) => {
   try {
-    const { code, deviceName, deviceIdentifier, platform } = req.body;
+    const { code, deviceName, deviceIdentifier, platform, batteryLevel } = req.body;
 
     if (!code || !deviceIdentifier) {
       return res.status(400).json({
@@ -106,17 +106,21 @@ exports.joinPairingCode = async (req, res) => {
       });
     }
 
-    // 1. Create or Find User account for Child
-    const childEmail = `child_${childProfile._id}@guardianx.local`;
-    let childUser = await User.findOne({ email: childEmail });
+    // 1. Create or Find Child User Account
+    let childUser = await User.findOne({
+      tenantId: pairingCode.tenantId,
+      role: 'child',
+      email: `child_${childProfile._id}@guardianx.app`
+    });
 
     if (!childUser) {
       const defaultPasswordHash = await bcrypt.hash('ChildPass123!', 10);
       childUser = await User.create({
         tenantId: pairingCode.tenantId,
-        role: 'child',
         name: childProfile.name,
-        email: childEmail,
+        email: `child_${childProfile._id}@guardianx.app`,
+        role: 'child',
+        childId: childProfile._id,
         passwordHash: defaultPasswordHash
       });
     }
@@ -124,9 +128,10 @@ exports.joinPairingCode = async (req, res) => {
     // 2. Create/Update Device record
     let device = await Device.findOne({
       tenantId: pairingCode.tenantId,
-      childId: childProfile._id,
-      deviceIdentifier
+      childId: childProfile._id
     });
+
+    const parsedBattery = batteryLevel !== undefined && batteryLevel !== null ? parseInt(batteryLevel, 10) : 100;
 
     if (!device) {
       device = await Device.create({
@@ -135,12 +140,14 @@ exports.joinPairingCode = async (req, res) => {
         deviceName: deviceName || `${childProfile.name}'s Device`,
         platform: platform || 'android',
         deviceIdentifier,
-        batteryLevel: 100,
+        batteryLevel: parsedBattery,
         isOnline: true,
         lastSeen: new Date()
       });
     } else {
       device.isOnline = true;
+      device.batteryLevel = parsedBattery;
+      device.deviceIdentifier = deviceIdentifier;
       device.lastSeen = new Date();
       await device.save();
     }

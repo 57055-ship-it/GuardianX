@@ -5,26 +5,43 @@ const Alert = require('../models/Alert');
 exports.updateHeartbeat = async (req, res) => {
   try {
     const { childId, batteryLevel, isOnline, deviceName, platform } = req.body;
-    const targetChildId = childId || req.user.childId;
+    let targetId = childId || (req.user ? req.user.childId || req.user.id : null);
 
-    if (!targetChildId) {
+    if (!targetId) {
       return res.status(400).json({ success: false, message: 'childId is required.' });
     }
 
+    // Resolve ChildProfile whether targetId is ChildProfile._id or User._id
+    let childProfile = await ChildProfile.findOne({
+      tenantId: req.tenantId,
+      $or: [{ _id: targetId }, { userId: targetId }]
+    });
+
+    if (!childProfile && req.user) {
+      childProfile = await ChildProfile.findOne({
+        tenantId: req.tenantId,
+        userId: req.user.id
+      });
+    }
+
+    const actualChildId = childProfile ? childProfile._id : targetId;
+
     let device = await Device.findOne({
       tenantId: req.tenantId,
-      childId: targetChildId
+      childId: actualChildId
     });
 
     if (!device) {
       device = new Device({
         tenantId: req.tenantId,
-        childId: targetChildId,
-        deviceIdentifier: `dev_${targetChildId}`
+        childId: actualChildId,
+        deviceIdentifier: `dev_${actualChildId}`
       });
     }
 
-    if (batteryLevel !== undefined) device.batteryLevel = batteryLevel;
+    if (batteryLevel !== undefined && batteryLevel !== null) {
+      device.batteryLevel = parseInt(batteryLevel, 10);
+    }
     if (isOnline !== undefined) device.isOnline = isOnline;
     if (deviceName) device.deviceName = deviceName;
     if (platform) device.platform = platform;
@@ -33,10 +50,11 @@ exports.updateHeartbeat = async (req, res) => {
     await device.save();
 
     // Link device record to child profile
-    await ChildProfile.findByIdAndUpdate(targetChildId, {
-      deviceId: device._id,
-      profileStatus: 'paired'
-    });
+    if (childProfile) {
+      childProfile.deviceId = device._id;
+      childProfile.profileStatus = 'paired';
+      await childProfile.save();
+    }
 
     // Check low battery trigger
     if (batteryLevel !== undefined && batteryLevel <= 15) {
