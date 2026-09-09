@@ -16,7 +16,89 @@ class ParentSettingsScreen extends StatefulWidget {
 
 class _ParentSettingsScreenState extends State<ParentSettingsScreen> {
   String _currentPlan = 'FREE';
+  bool _isLoadingPlan = true;
   bool _isUpdatingPlan = false;
+  bool _isBiometricEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFamilyDetails();
+    _loadBiometricStatus();
+  }
+
+  Future<void> _loadFamilyDetails() async {
+    try {
+      final apiClient = Provider.of<ApiClient>(context, listen: false);
+      final res = await apiClient.get('/families/details');
+      if (res['success'] == true && res['family'] != null) {
+        if (mounted) {
+          setState(() {
+            _currentPlan = (res['family']['plan'] ?? 'FREE').toString().toUpperCase();
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('[Settings] Failed to fetch family plan: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingPlan = false);
+      }
+    }
+  }
+
+  Future<void> _loadBiometricStatus() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final savedEmail = await authProvider.biometricService.getSavedParentEmail();
+    if (mounted) {
+      setState(() {
+        _isBiometricEnabled = savedEmail != null && savedEmail.isNotEmpty;
+      });
+    }
+  }
+
+  void _toggleBiometrics(bool enable) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final biometricService = authProvider.biometricService;
+
+    if (enable) {
+      final canCheck = await biometricService.canCheckBiometrics();
+      if (!canCheck) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Face ID / Biometrics is not supported on this device.')),
+          );
+        }
+        return;
+      }
+
+      final authenticated = await biometricService.authenticate(
+        reason: 'Authenticate to enable Face ID / Biometrics for GuardianX',
+      );
+
+      if (authenticated) {
+        final email = authProvider.currentUser?.email;
+        if (email != null) {
+          // Store email for biometric login prompt
+          await biometricService.saveParentCredentials(email, 'SAVED_BIOMETRIC_SESSION');
+          setState(() => _isBiometricEnabled = true);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Face ID / Biometric login enabled successfully!')),
+            );
+          }
+        }
+      }
+    } else {
+      await biometricService.clearSavedCredentials();
+      setState(() => _isBiometricEnabled = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Face ID / Biometric login removed.')),
+        );
+      }
+    }
+  }
 
   void _updatePlan(String plan) async {
     setState(() => _isUpdatingPlan = true);
@@ -47,7 +129,16 @@ class _ParentSettingsScreenState extends State<ParentSettingsScreen> {
     final user = authProvider.currentUser;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Account & Settings')),
+      appBar: AppBar(
+        title: const Text('Account & Settings'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _loadFamilyDetails,
+            tooltip: 'Refresh Plan Details',
+          ),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -122,9 +213,50 @@ class _ParentSettingsScreenState extends State<ParentSettingsScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'Current Plan: $_currentPlan',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                      Row(
+                        children: [
+                          const Text(
+                            'Active Plan: ',
+                            style: TextStyle(fontSize: 15),
+                          ),
+                          if (_isLoadingPlan)
+                            const SizedBox(
+                              width: 14,
+                              height: 14,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          else
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: _currentPlan == 'PREMIUM'
+                                    ? Colors.amber.withOpacity(0.2)
+                                    : _currentPlan == 'FAMILY'
+                                        ? AppColors.primary.withOpacity(0.2)
+                                        : Colors.grey.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: _currentPlan == 'PREMIUM'
+                                      ? Colors.amber
+                                      : _currentPlan == 'FAMILY'
+                                          ? AppColors.primary
+                                          : Colors.grey,
+                                ),
+                              ),
+                              child: Text(
+                                _currentPlan,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                  color: _currentPlan == 'PREMIUM'
+                                      ? Colors.amber.shade800
+                                      : _currentPlan == 'FAMILY'
+                                          ? AppColors.primary
+                                          : Colors.grey.shade800,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                       if (_isUpdatingPlan)
                         const SizedBox(
@@ -181,9 +313,9 @@ class _ParentSettingsScreenState extends State<ParentSettingsScreen> {
           ),
           const SizedBox(height: 20),
 
-          // Preferences & Actions
+          // Security & Biometric Preferences
           const Text(
-            'App Preferences',
+            'Security & App Preferences',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10),
@@ -191,17 +323,27 @@ class _ParentSettingsScreenState extends State<ParentSettingsScreen> {
             child: Column(
               children: [
                 SwitchListTile(
+                  title: const Text('Face ID / Biometric Login'),
+                  subtitle: Text(_isBiometricEnabled
+                      ? 'Enabled - Log in using Face ID or Fingerprint'
+                      : 'Disabled - Sign in with email & password'),
+                  secondary: const Icon(Icons.fingerprint, color: AppColors.primary),
+                  value: _isBiometricEnabled,
+                  onChanged: _toggleBiometrics,
+                ),
+                const Divider(height: 1),
+                SwitchListTile(
                   title: const Text('Dark Theme'),
                   secondary: const Icon(Icons.dark_mode_outlined),
                   value: themeProvider.isDarkMode,
                   onChanged: (val) => themeProvider.toggleTheme(val),
                 ),
                 const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.security),
-                  title: const Text('Security & Privacy Policy'),
-                  subtitle: const Text('Multi-tenant isolation & OS permission transparency'),
-                  trailing: const Icon(Icons.chevron_right),
+                const ListTile(
+                  leading: Icon(Icons.security),
+                  title: Text('Security & Privacy Policy'),
+                  subtitle: Text('Multi-tenant isolation & OS permission transparency'),
+                  trailing: Icon(Icons.chevron_right),
                 ),
               ],
             ),
@@ -231,3 +373,4 @@ class _ParentSettingsScreenState extends State<ParentSettingsScreen> {
     );
   }
 }
+

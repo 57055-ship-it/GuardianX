@@ -23,11 +23,11 @@ class _LoginScreenState extends State<LoginScreen> {
   void _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final success = await authProvider.login(
-      _emailController.text.trim(),
-      _passwordController.text,
-    );
+    final success = await authProvider.login(email, password);
 
     if (success && mounted) {
       if (authProvider.isChild) {
@@ -35,9 +35,64 @@ class _LoginScreenState extends State<LoginScreen> {
           MaterialPageRoute(builder: (_) => const ChildShell()),
         );
       } else {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const ParentShell()),
-        );
+        // Prompt for Face ID if device supports it and not yet set up
+        final biometricService = authProvider.biometricService;
+        final canCheck = await biometricService.canCheckBiometrics();
+        final savedEmail = await biometricService.getSavedParentEmail();
+
+        if (canCheck && (savedEmail == null || savedEmail.isEmpty) && mounted) {
+          final shouldEnable = await showDialog<bool>(
+            context: context,
+            barrierDismissible: false,
+            builder: (ctx) => AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: const Row(
+                children: [
+                  Icon(Icons.fingerprint, color: AppColors.primary, size: 28),
+                  SizedBox(width: 10),
+                  Text('Enable Face ID / Biometrics?'),
+                ],
+              ),
+              content: const Text(
+                'Would you like to enable Face ID / Fingerprint for fast and secure sign in next time?',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(false),
+                  child: const Text('Not Now', style: TextStyle(color: Colors.grey)),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  onPressed: () => Navigator.of(ctx).pop(true),
+                  child: const Text('Enable Face ID'),
+                ),
+              ],
+            ),
+          );
+
+          if (shouldEnable == true) {
+            final authenticated = await biometricService.authenticate(
+              reason: 'Authenticate to enable Face ID / Biometrics for GuardianX',
+            );
+            if (authenticated) {
+              await biometricService.saveParentCredentials(email, password);
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Face ID / Biometric login enabled for future sign ins!')),
+                );
+              }
+            }
+          }
+        }
+
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const ParentShell()),
+          );
+        }
       }
     }
   }
