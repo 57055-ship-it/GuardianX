@@ -7,10 +7,10 @@ class AppColors {
   static const Color primaryLight = Color(0xFF14B8A6);
   static const Color secondary = Color(0xFF10B981); // Emerald Safe
 
-  // Dark Mode Surfaces (Legacy Fallback)
-  static const Color darkBackground = Color(0xFFF8FAFC);
-  static const Color darkSurface = Color(0xFFFFFFFF);
-  static const Color darkCard = Color(0xFFFFFFFF);
+  // Dark Mode Surfaces
+  static const Color darkBackground = Color(0xFF0F172A); // Slate 900
+  static const Color darkSurface = Color(0xFF1E293B);    // Slate 800
+  static const Color darkCard = Color(0xFF1E293B);       // Slate 800
 
   // Light Mode Surfaces
   static const Color lightBackground = Color(0xFFF8FAFC);
@@ -24,8 +24,8 @@ class AppColors {
   static const Color info = Color(0xFF0D9488); // Teal Info
 
   // Text Colors
-  static const Color textPrimaryDark = Color(0xFF0F172A);
-  static const Color textSecondaryDark = Color(0xFF64748B);
+  static const Color textPrimaryDark = Color(0xFFF8FAFC);   // Slate 50
+  static const Color textSecondaryDark = Color(0xFF94A3B8); // Slate 400
   static const Color textPrimaryLight = Color(0xFF0F172A);
   static const Color textSecondaryLight = Color(0xFF64748B);
 }
