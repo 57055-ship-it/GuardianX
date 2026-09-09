@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 // Services
 import 'core/services/storage_service.dart';
+import 'core/services/biometric_service.dart';
 import 'core/services/api_client.dart';
 import 'core/theme/app_theme.dart';
 
@@ -38,6 +39,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final storageService = await StorageService.init();
+  final biometricService = BiometricService(storageService);
   final apiClient = ApiClient(storageService);
 
   // Instantiating Repositories
@@ -57,8 +59,9 @@ void main() async {
       providers: [
         Provider<ApiClient>.value(value: apiClient),
         Provider<StorageService>.value(value: storageService),
+        Provider<BiometricService>.value(value: biometricService),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => AuthProvider(authRepository, storageService)),
+        ChangeNotifierProvider(create: (_) => AuthProvider(authRepository, storageService, biometricService)),
         ChangeNotifierProvider(create: (_) => ChildProvider(childRepository)),
         ChangeNotifierProvider(create: (_) => PairingProvider(pairingRepository)),
         ChangeNotifierProvider(create: (_) => LocationProvider(locationRepository)),

@@ -42,6 +42,23 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  void _handleBiometricLogin() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final success = await authProvider.loginWithBiometrics();
+
+    if (success && mounted) {
+      if (authProvider.isChild) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const ChildShell()),
+        );
+      } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const ParentShell()),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
@@ -120,6 +137,26 @@ class _LoginScreenState extends State<LoginScreen> {
                   text: 'Sign In',
                   onPressed: _handleLogin,
                   isLoading: authProvider.status == AuthStatus.loading,
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(50),
+                    side: BorderSide(color: AppColors.primary.withOpacity(0.4)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: _handleBiometricLogin,
+                  icon: const Icon(Icons.fingerprint, color: AppColors.primary, size: 24),
+                  label: const Text(
+                    'Sign In with Face ID / Biometrics',
+                    style: TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Row(

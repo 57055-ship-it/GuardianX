@@ -78,5 +78,7 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSFaceIDUsageDescription</key>
+	<string>GuardianX uses Face ID and Touch ID to securely authenticate Parent logins.</string>
 </dict>
 </plist>
