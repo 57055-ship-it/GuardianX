@@ -62,7 +62,7 @@ class _ChildSOSScreenState extends State<ChildSOSScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           backgroundColor: AppColors.critical,
-          content: Text('🚨 SOS Distress Signal Sent to Parent! Help is on the way.'),
+          content: Text('SOS Distress Signal Sent to Parent! Help is on the way.'),
           duration: Duration(seconds: 5),
         ),
       );

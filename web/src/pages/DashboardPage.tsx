@@ -9,7 +9,7 @@ import { ChildProfile, Geofence, Alert as AlertType } from '../types';
 import { Card } from '../components/common/Card';
 import { Badge } from '../components/common/Badge';
 import { Button } from '../components/common/Button';
-import { LoadingSpinner, SkeletonCard } from '../components/common/LoadingSpinner';
+import { CardSkeleton } from '../components/common/Skeleton';
 import { EmptyState } from '../components/common/EmptyState';
 import {
   Users,
@@ -70,14 +70,8 @@ export const DashboardPage: React.FC = () => {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="h-10 bg-slate-800/60 rounded-xl w-1/3 animate-pulse"></div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <SkeletonCard />
-          <SkeletonCard />
-          <SkeletonCard />
-          <SkeletonCard />
-        </div>
-        <LoadingSpinner label="Fetching GuardianX Family Dashboard..." />
+        <div className="h-10 bg-slate-800/60 rounded-xl w-1/3 animate-skeleton" />
+        <CardSkeleton count={4} />
       </div>
     );
   }

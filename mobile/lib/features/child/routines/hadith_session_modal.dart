@@ -46,7 +46,7 @@ class _HadithSessionModalState extends State<HadithSessionModal> {
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Hadith session marked as completed! 🎉')),
+        const SnackBar(content: Text('Hadith session marked as completed!')),
       );
       Navigator.of(context).pop();
     }

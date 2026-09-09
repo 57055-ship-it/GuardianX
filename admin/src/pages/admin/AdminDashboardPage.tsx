@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { adminApi } from '../../api/adminApi';
 import { DashboardStats } from '../../types';
-import { LoadingSpinner } from '../../components/common/LoadingSpinner';
+import { CardSkeleton } from '../../components/common/Skeleton';
 import {
   Users,
   Baby,
@@ -41,8 +41,9 @@ export const AdminDashboardPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="py-20 flex justify-center">
-        <LoadingSpinner label="Aggregating platform metrics from MongoDB..." />
+      <div className="space-y-6">
+        <div className="h-10 bg-slate-800/60 rounded-xl w-1/3 animate-skeleton" />
+        <CardSkeleton count={8} />
       </div>
     );
   }

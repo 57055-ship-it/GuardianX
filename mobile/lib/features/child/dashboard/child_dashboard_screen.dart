@@ -91,7 +91,7 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Hello, $childName! 😊',
+                              'Hello, $childName!',
                               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 4),
