@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Shield, LogOut, User as UserIcon, Menu } from 'lucide-react';
+import { LogOut, User as UserIcon, Menu } from 'lucide-react';
 import { Badge } from '../common/Badge';
 
 interface NavbarProps {
@@ -22,17 +22,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
               <Menu className="w-5 h-5" />
             </button>
           )}
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-teal-50 border border-teal-200 rounded-xl text-teal-700">
-              <Shield className="w-5 h-5" />
-            </div>
-            <div>
-              <span className="font-extrabold text-lg tracking-wider text-slate-900">GUARDIAN<span className="text-teal-600">X</span></span>
-              <span className="hidden sm:inline-block ml-2 text-xs font-semibold px-2 py-0.5 bg-teal-50 text-teal-700 border border-teal-200 rounded-md">
-                PARENT PORTAL
-              </span>
-            </div>
-          </div>
         </div>
 
         <div className="flex items-center gap-4">

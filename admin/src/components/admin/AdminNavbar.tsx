@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAdminAuth } from '../../context/AdminAuthContext';
-import { ShieldCheck, UserCheck, Menu } from 'lucide-react';
+import { UserCheck, Menu } from 'lucide-react';
 
 interface AdminNavbarProps {
   onToggleSidebar?: () => void;
@@ -21,10 +21,6 @@ export const AdminNavbar: React.FC<AdminNavbarProps> = ({ onToggleSidebar }) => 
             <Menu className="w-5 h-5" />
           </button>
         )}
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-          Production Control Plane
-        </span>
       </div>
 
       <div className="flex items-center gap-4">
