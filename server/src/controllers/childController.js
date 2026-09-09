@@ -47,10 +47,34 @@ exports.getChildren = async (req, res) => {
       .populate('deviceId')
       .sort({ createdAt: -1 });
 
+    const childrenWithDevices = await Promise.all(
+      children.map(async (childDoc) => {
+        const child = childDoc.toObject();
+        if (!child.deviceId) {
+          const device = await Device.findOne({
+            tenantId: req.tenantId,
+            $or: [
+              { childId: child._id },
+              ...(child.userId ? [{ childId: child.userId }] : [])
+            ]
+          });
+          if (device) {
+            child.deviceId = device;
+            child.profileStatus = 'paired';
+            ChildProfile.findByIdAndUpdate(child._id, {
+              deviceId: device._id,
+              profileStatus: 'paired'
+            }).exec();
+          }
+        }
+        return child;
+      })
+    );
+
     return res.status(200).json({
       success: true,
-      count: children.length,
-      children
+      count: childrenWithDevices.length,
+      children: childrenWithDevices
     });
   } catch (error) {
     return res.status(500).json({
@@ -63,13 +87,32 @@ exports.getChildren = async (req, res) => {
 
 exports.getChildById = async (req, res) => {
   try {
-    const child = await ChildProfile.findOne({
+    const childDoc = await ChildProfile.findOne({
       _id: req.params.id,
       tenantId: req.tenantId
     }).populate('deviceId');
 
-    if (!child) {
+    if (!childDoc) {
       return res.status(404).json({ success: false, message: 'Child profile not found.' });
+    }
+
+    const child = childDoc.toObject();
+    if (!child.deviceId) {
+      const device = await Device.findOne({
+        tenantId: req.tenantId,
+        $or: [
+          { childId: child._id },
+          ...(child.userId ? [{ childId: child.userId }] : [])
+        ]
+      });
+      if (device) {
+        child.deviceId = device;
+        child.profileStatus = 'paired';
+        ChildProfile.findByIdAndUpdate(child._id, {
+          deviceId: device._id,
+          profileStatus: 'paired'
+        }).exec();
+      }
     }
 
     return res.status(200).json({

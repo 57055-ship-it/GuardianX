@@ -10,7 +10,7 @@ export const AdminNavbar: React.FC<AdminNavbarProps> = ({ onToggleSidebar }) => 
   const { user } = useAdminAuth();
 
   return (
-    <header className="h-16 bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 sm:px-8 flex items-center justify-between sticky top-0 z-40">
+    <header className="h-16 bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 sm:px-8 flex items-center justify-between sticky top-0 z-30 lg:pl-64">
       <div className="flex items-center gap-3">
         {onToggleSidebar && (
           <button
