@@ -3,7 +3,7 @@
 @layer base {
   body {
     font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    @apply bg-slate-950 text-slate-100 antialiased min-h-screen selection:bg-amber-500/30 selection:text-amber-200;
+    @apply bg-slate-50 text-slate-900 antialiased min-h-screen selection:bg-amber-500/20 selection:text-amber-900;
   }
 }
 
@@ -17,8 +17,9 @@
 }
 
 .animate-skeleton {
-  background: linear-gradient(90deg, rgba(30, 41, 59, 0.6) 25%, rgba(51, 65, 85, 0.8) 37%, rgba(30, 41, 59, 0.6) 63%);
+  background: linear-gradient(90deg, rgba(226, 232, 240, 0.7) 25%, rgba(241, 245, 249, 0.9) 37%, rgba(226, 232, 240, 0.7) 63%);
   background-size: 200% 100%;
   animation: skeleton-shimmer 1.8s infinite ease-in-out;
 }
+
 

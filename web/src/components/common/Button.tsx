@@ -20,14 +20,14 @@ export const Button: React.FC<ButtonProps> = ({
 }) => {
   const variantStyles = {
     primary:
-      'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/20 active:bg-indigo-700',
+      'bg-teal-600 hover:bg-teal-700 text-white shadow-sm shadow-teal-600/20 active:bg-teal-800',
     secondary:
-      'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/20 active:bg-emerald-700',
+      'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm active:bg-emerald-800',
     outline:
-      'border border-slate-700 hover:bg-slate-800 text-slate-200 hover:border-slate-600 active:bg-slate-800/80',
+      'border border-slate-300 hover:bg-slate-100 text-slate-700 hover:border-slate-400 active:bg-slate-200',
     danger:
-      'bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-600/20 active:bg-rose-700',
-    ghost: 'hover:bg-slate-800 text-slate-300 hover:text-white',
+      'bg-rose-600 hover:bg-rose-700 text-white shadow-sm active:bg-rose-800',
+    ghost: 'hover:bg-slate-100 text-slate-600 hover:text-slate-900',
   };
 
   const sizeStyles = {
