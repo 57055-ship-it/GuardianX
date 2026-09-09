@@ -9,9 +9,9 @@ export const AppLayout: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans">
       <Navbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex min-w-0">
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+        <main className="flex-1 lg:pl-64 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto min-w-0">
           <Outlet />
         </main>
       </div>
