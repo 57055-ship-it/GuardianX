@@ -11,6 +11,15 @@ exports.createGeofence = async (req, res) => {
       });
     }
 
+    const { canCreateSafeZone } = require('../services/entitlementService');
+    const check = await canCreateSafeZone(req.tenantId);
+    if (!check.allowed) {
+      return res.status(403).json({
+        success: false,
+        message: check.message
+      });
+    }
+
     const geofence = await Geofence.create({
       tenantId: req.tenantId,
       childId,

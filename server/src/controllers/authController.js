@@ -48,17 +48,23 @@ exports.register = async (req, res) => {
     }
 
     // 1. Create Tenant (Family)
+    const Subscription = require('../models/Subscription');
+    const Plan = require('../models/Plan');
+
+    const defaultPlan = await Plan.findOne({ slug: 'free' });
+
     const tenant = await Tenant.create({
       name: familyName || `${name}'s Family`,
       plan: 'FREE',
-      childrenLimit: 1
+      planId: defaultPlan ? defaultPlan._id : null,
+      childrenLimit: defaultPlan?.limits?.maxChildren || 1
     });
 
     // 2. Hash Password
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
-    // 3. Create Parent User
+    // 3. Create Parent User (STRICTLY role: 'parent')
     const user = await User.create({
       tenantId: tenant._id,
       role: 'parent',
@@ -67,8 +73,19 @@ exports.register = async (req, res) => {
       passwordHash
     });
 
-    // 4. Set Tenant ownerId
+    // 4. Set Tenant ownerId & Subscription
     tenant.ownerId = user._id;
+
+    if (defaultPlan) {
+      const subscription = await Subscription.create({
+        tenantId: tenant._id,
+        parentId: user._id,
+        planId: defaultPlan._id,
+        status: 'active',
+        startDate: new Date()
+      });
+      tenant.subscriptionId = subscription._id;
+    }
     await tenant.save();
 
     const { accessToken, refreshToken } = generateTokens(user);

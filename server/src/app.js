@@ -17,6 +17,7 @@ const sosRoutes = require('./routes/sosRoutes');
 const routineRoutes = require('./routes/routineRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
 
@@ -50,6 +51,7 @@ app.get('/health', healthHandler);
 app.get('/api/health', healthHandler);
 
 // API Routes
+app.use('/api/admin', adminRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/families', familyRoutes);
 app.use('/api/children', childRoutes);

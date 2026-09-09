@@ -10,9 +10,10 @@ const UserSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['parent', 'child', 'admin'],
+      enum: ['parent', 'child', 'admin', 'super_admin'],
       required: true,
-      default: 'parent'
+      default: 'parent',
+      index: true
     },
     name: {
       type: String,
@@ -37,7 +38,8 @@ const UserSchema = new mongoose.Schema(
     },
     isActive: {
       type: Boolean,
-      default: true
+      default: true,
+      index: true
     }
   },
   { timestamps: true }

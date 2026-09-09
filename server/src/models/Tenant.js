@@ -13,13 +13,28 @@ const TenantSchema = new mongoose.Schema(
     },
     plan: {
       type: String,
-      enum: ['FREE', 'FAMILY', 'PREMIUM'],
+      enum: ['FREE', 'BASIC', 'FAMILY', 'PREMIUM'],
       default: 'FREE'
+    },
+    planId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Plan'
+    },
+    subscriptionId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Subscription'
     },
     subscriptionStatus: {
       type: String,
-      enum: ['active', 'past_due', 'canceled'],
-      default: 'active'
+      enum: ['trialing', 'active', 'past_due', 'canceled', 'expired', 'suspended'],
+      default: 'active',
+      index: true
+    },
+    status: {
+      type: String,
+      enum: ['active', 'suspended'],
+      default: 'active',
+      index: true
     },
     childrenLimit: {
       type: Number,

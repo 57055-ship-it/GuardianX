@@ -10,18 +10,12 @@ exports.createChild = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Child name is required.' });
     }
 
-    const tenant = await Tenant.findById(req.tenantId);
-    if (!tenant) {
-      return res.status(404).json({ success: false, message: 'Tenant not found.' });
-    }
-
-    const currentChildrenCount = await ChildProfile.countDocuments({ tenantId: req.tenantId });
-    const maxLimit = ENTITLEMENTS[tenant.plan]?.maxChildren || 1;
-
-    if (currentChildrenCount >= maxLimit) {
+    const { canCreateChild } = require('../services/entitlementService');
+    const check = await canCreateChild(req.tenantId);
+    if (!check.allowed) {
       return res.status(403).json({
         success: false,
-        message: `Child profile limit reached (${currentChildrenCount}/${maxLimit}) for ${tenant.plan} plan. Please upgrade your plan to add more children.`
+        message: check.message
       });
     }
 

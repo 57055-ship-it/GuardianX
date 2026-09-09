@@ -1,6 +1,3 @@
-import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart' show kIsWeb;
-
 class ApiConstants {
   static String get defaultHost {
     return 'https://guardianx-bd1f.onrender.com/api';
