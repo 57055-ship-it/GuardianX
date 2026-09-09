@@ -11,6 +11,7 @@ import '../../../providers/report_provider.dart';
 import '../../shared/widgets/status_badge.dart';
 
 import '../location/parent_location_screen.dart';
+import '../location/google_maps_location_card.dart';
 import '../geofences/geofence_management_screen.dart';
 import '../screen_time/parent_screen_time_screen.dart';
 import '../routines/parent_routines_screen.dart';
@@ -216,36 +217,10 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                // Latest Location Card
-                Card(
-                  child: ListTile(
-                    leading: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(Icons.location_on, color: Colors.red),
-                    ),
-                    title: const Text(
-                      'Latest Location Summary',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                    ),
-                    subtitle: Text(
-                      locationProvider.latestLocation != null
-                          ? '(${locationProvider.latestLocation!.latitude.toStringAsFixed(4)}, ${locationProvider.latestLocation!.longitude.toStringAsFixed(4)}) — ${DateFormatter.formatTime(locationProvider.latestLocation!.timestamp)}'
-                          : 'Location updated recently (Lahore Safe Zone)',
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => ParentLocationScreen(childId: selectedChild.id),
-                        ),
-                      );
-                    },
-                  ),
+                // Google Maps Location Card
+                GoogleMapsLocationCard(
+                  location: locationProvider.latestLocation,
+                  childName: selectedChild.name,
                 ),
                 const SizedBox(height: 20),
 
