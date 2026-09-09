@@ -191,10 +191,16 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
                             _buildMetricItem(
-                              icon: Icons.battery_charging_full,
-                              color: Colors.green,
+                              icon: selectedChild.device != null && selectedChild.device!.batteryLevel <= 20
+                                  ? Icons.battery_alert
+                                  : Icons.battery_charging_full,
+                              color: selectedChild.device != null && selectedChild.device!.batteryLevel <= 20
+                                  ? AppColors.critical
+                                  : Colors.green,
                               title: 'Battery',
-                              value: '${selectedChild.device?.batteryLevel ?? 85}%',
+                              value: selectedChild.device != null
+                                  ? '${selectedChild.device!.batteryLevel}%'
+                                  : 'N/A',
                             ),
                             _buildMetricItem(
                               icon: Icons.timer_outlined,

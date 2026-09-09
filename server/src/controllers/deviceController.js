@@ -1,4 +1,5 @@
 const Device = require('../models/Device');
+const ChildProfile = require('../models/ChildProfile');
 const Alert = require('../models/Alert');
 
 exports.updateHeartbeat = async (req, res) => {
@@ -30,6 +31,12 @@ exports.updateHeartbeat = async (req, res) => {
     device.lastSeen = new Date();
 
     await device.save();
+
+    // Link device record to child profile
+    await ChildProfile.findByIdAndUpdate(targetChildId, {
+      deviceId: device._id,
+      profileStatus: 'paired'
+    });
 
     // Check low battery trigger
     if (batteryLevel !== undefined && batteryLevel <= 15) {

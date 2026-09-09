@@ -27,6 +27,7 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
   int _batteryLevel = 100;
   bool _isCharging = false;
   StreamSubscription<BatteryState>? _batterySubscription;
+  Timer? _heartbeatTimer;
 
   @override
   void initState() {
@@ -35,11 +36,15 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
       _loadChildData();
       _fetchRealBatteryStatus();
       _listenToBatteryChanges();
+      _heartbeatTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+        _fetchRealBatteryStatus();
+      });
     });
   }
 
   @override
   void dispose() {
+    _heartbeatTimer?.cancel();
     _batterySubscription?.cancel();
     super.dispose();
   }
