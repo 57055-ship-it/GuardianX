@@ -1,3 +1,4 @@
+require('dotenv').config();
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
@@ -61,8 +62,9 @@ async function seed() {
     } else {
       adminUser.role = 'super_admin';
       adminUser.isActive = true;
+      adminUser.passwordHash = await bcrypt.hash(adminPassword, 10);
       await adminUser.save();
-      console.log(`[Seed] Updated user (${adminEmail}) to super_admin role.`);
+      console.log(`[Seed] Updated user (${adminEmail}) to super_admin role and updated password.`);
     }
 
     console.log('[Seed] Seeding completed successfully.');
