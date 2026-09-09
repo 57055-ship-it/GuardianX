@@ -19,7 +19,7 @@ export const AdminLoginPage: React.FC = () => {
 
     try {
       await login(email, password);
-      navigate('/admin', { replace: true });
+      navigate('/dashboard', { replace: true });
     } catch (err: any) {
       setError(err.response?.data?.message || err.message || 'Super Admin authentication failed.');
     } finally {

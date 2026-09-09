@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { adminApi } from '../../api/adminApi';
 import { Subscription } from '../../types';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
-import { CreditCard, Calendar, CheckCircle2, Clock } from 'lucide-react';
 
 export const AdminSubscriptionsPage: React.FC = () => {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);

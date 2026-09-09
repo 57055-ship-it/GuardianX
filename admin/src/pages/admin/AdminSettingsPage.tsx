@@ -2,33 +2,32 @@ import React, { useEffect, useState } from 'react';
 import { adminApi } from '../../api/adminApi';
 import { SaaSSetting } from '../../types';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
-import { Button } from '../../components/common/Button';
-import { Settings, Save, CheckCircle2 } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 
 export const AdminSettingsPage: React.FC = () => {
   const [settings, setSettings] = useState<SaaSSetting[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSavingKey, setIsSavingKey] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetchSettings();
-  }, []);
 
   const fetchSettings = async () => {
     try {
       setIsLoading(true);
       const res = await adminApi.getSettings();
-      setSettings(res.settings);
-    } catch (err) {
-      console.error(err);
+      if (res.success) {
+        setSettings(res.settings);
+      }
+    } catch (err: any) {
+      console.error('Failed to load settings:', err);
     } finally {
       setIsLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
   const handleUpdate = async (key: string, newValue: any) => {
-    setIsSavingKey(key);
     setSuccessMsg(null);
     try {
       await adminApi.updateSetting(key, newValue);
@@ -36,8 +35,6 @@ export const AdminSettingsPage: React.FC = () => {
       fetchSettings();
     } catch (err: any) {
       alert(err.response?.data?.message || 'Failed to update setting.');
-    } finally {
-      setIsSavingKey(null);
     }
   };
 
@@ -98,3 +95,4 @@ export const AdminSettingsPage: React.FC = () => {
     </div>
   );
 };
+

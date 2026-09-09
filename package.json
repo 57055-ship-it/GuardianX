@@ -1,0 +1,14 @@
+{
+  "name": "guardianx-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "description": "GuardianX Monorepo Root Workspace",
+  "scripts": {
+    "dev:web": "npm --prefix web run dev",
+    "dev:admin": "npm --prefix admin run dev",
+    "dev:server": "npm --prefix server run dev",
+    "build:web": "npm --prefix web run build",
+    "build:admin": "npm --prefix admin run build",
+    "test:server": "npm --prefix server run test"
+  }
+}

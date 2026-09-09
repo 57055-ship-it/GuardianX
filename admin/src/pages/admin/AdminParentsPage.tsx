@@ -182,7 +182,7 @@ export const AdminParentsPage: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 text-right space-x-2">
                       <button
-                        onClick={() => navigate(`/admin/parents/${p._id || p.id}`)}
+                        onClick={() => navigate(`/parents/${p._id || p.id}`)}
                         className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all"
                         title="View Details"
                       >

@@ -18,15 +18,15 @@ export const AdminSidebar: React.FC = () => {
   const { logout } = useAdminAuth();
 
   const navItems = [
-    { label: 'Dashboard', path: '/admin', icon: LayoutDashboard },
-    { label: 'Parents', path: '/admin/parents', icon: Users },
-    { label: 'Children', path: '/admin/children', icon: Baby },
-    { label: 'Families', path: '/admin/families', icon: Building2 },
-    { label: 'Plans', path: '/admin/plans', icon: PackageCheck },
-    { label: 'Subscriptions', path: '/admin/subscriptions', icon: CreditCard },
-    { label: 'Usage', path: '/admin/usage', icon: BarChart3 },
-    { label: 'Audit Logs', path: '/admin/audit-logs', icon: ShieldAlert },
-    { label: 'Settings', path: '/admin/settings', icon: Settings }
+    { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    { label: 'Parents', path: '/parents', icon: Users },
+    { label: 'Children', path: '/children', icon: Baby },
+    { label: 'Families', path: '/families', icon: Building2 },
+    { label: 'Plans', path: '/plans', icon: PackageCheck },
+    { label: 'Subscriptions', path: '/subscriptions', icon: CreditCard },
+    { label: 'Usage', path: '/usage', icon: BarChart3 },
+    { label: 'Audit Logs', path: '/audit-logs', icon: ShieldAlert },
+    { label: 'Settings', path: '/settings', icon: Settings }
   ];
 
   return (
@@ -49,7 +49,7 @@ export const AdminSidebar: React.FC = () => {
             <NavLink
               key={item.path}
               to={item.path}
-              end={item.path === '/admin'}
+              end={item.path === '/dashboard'}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-all ${
                   isActive

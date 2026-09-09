@@ -15,7 +15,7 @@ export const AdminProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ c
   }
 
   if (!isAuthenticated || !isSuperAdmin) {
-    return <Navigate to="/admin/login" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   return <>{children}</>;

@@ -4,7 +4,7 @@ import { Plan } from '../../types';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { Button } from '../../components/common/Button';
 import { Modal } from '../../components/common/Modal';
-import { PackageCheck, Plus, Edit2, Check, X, Shield, Sparkles } from 'lucide-react';
+import { Plus, Edit2 } from 'lucide-react';
 
 export const AdminPlansPage: React.FC = () => {
   const [plans, setPlans] = useState<Plan[]>([]);

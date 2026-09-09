@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { adminApi } from '../../api/adminApi';
 import { AuditLog } from '../../types';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
-import { ShieldAlert, Terminal, Calendar, User } from 'lucide-react';
 
 export const AdminAuditLogsPage: React.FC = () => {
   const [logs, setLogs] = useState<AuditLog[]>([]);

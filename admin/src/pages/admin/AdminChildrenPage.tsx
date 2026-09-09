@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { adminApi } from '../../api/adminApi';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
-import { Baby, Smartphone, Building2, User } from 'lucide-react';
+import { Baby, Smartphone, Building2 } from 'lucide-react';
 
 export const AdminChildrenPage: React.FC = () => {
   const [childrenList, setChildrenList] = useState<any[]>([]);

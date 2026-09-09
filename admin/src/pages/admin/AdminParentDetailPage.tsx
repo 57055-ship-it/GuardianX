@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { adminApi } from '../../api/adminApi';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { Button } from '../../components/common/Button';
-import { ArrowLeft, User, Building2, Baby, Smartphone, ShieldCheck, Clock } from 'lucide-react';
+import { ArrowLeft, User, Building2, Baby, Smartphone, ShieldCheck } from 'lucide-react';
 
 export const AdminParentDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -39,7 +39,7 @@ export const AdminParentDetailPage: React.FC = () => {
   if (error || !data) {
     return (
       <div className="space-y-4">
-        <Button variant="secondary" onClick={() => navigate('/admin/parents')}>
+        <Button variant="secondary" onClick={() => navigate('/parents')}>
           <ArrowLeft className="w-4 h-4 mr-2" /> Back to Parents
         </Button>
         <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-400 text-sm">
@@ -55,7 +55,7 @@ export const AdminParentDetailPage: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="secondary" onClick={() => navigate('/admin/parents')}>
+        <Button variant="secondary" onClick={() => navigate('/parents')}>
           <ArrowLeft className="w-4 h-4" />
         </Button>
         <div>

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '../types';
-import { authApi } from '../api/authApi';
+import { adminApi } from '../api/adminApi';
 
 interface AdminAuthContextType {
   user: User | null;
@@ -32,7 +32,7 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
 
     try {
-      const data = await authApi.getProfile();
+      const data = await adminApi.getProfile();
       if (data.user.role !== 'super_admin' && data.user.role !== 'admin') {
         throw new Error('GuardianX Admin Control Plane requires a Super Admin account.');
       }
@@ -40,6 +40,8 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       localStorage.setItem('guardianx_admin_user', JSON.stringify(data.user));
     } catch {
       setUser(null);
+      localStorage.removeItem('guardianx_access_token');
+      localStorage.removeItem('guardianx_admin_user');
     } finally {
       setIsLoading(false);
     }
@@ -47,12 +49,21 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   useEffect(() => {
     checkSession();
+
+    const handleUnauthorized = () => {
+      setUser(null);
+      localStorage.removeItem('guardianx_access_token');
+      localStorage.removeItem('guardianx_admin_user');
+    };
+
+    window.addEventListener('guardianx_admin_unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('guardianx_admin_unauthorized', handleUnauthorized);
   }, []);
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const res = await authApi.login(email, password);
+      const res = await adminApi.login(email, password);
       if (res.user.role !== 'super_admin' && res.user.role !== 'admin') {
         throw new Error('Access denied: GuardianX Admin Control Plane is restricted to Super Admin accounts.');
       }
@@ -67,7 +78,7 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const logout = async () => {
     try {
-      await authApi.logout();
+      await adminApi.logout();
     } catch {
       // Ignore
     } finally {

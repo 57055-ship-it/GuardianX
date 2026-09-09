@@ -11,6 +11,26 @@ import {
 } from '../types';
 
 export const adminApi = {
+  // Auth
+  login: async (email: string, password: string) => {
+    const res = await apiClient.post<{
+      success: boolean;
+      tokens: { accessToken: string; refreshToken: string };
+      user: User;
+    }>('/auth/login', { email, password });
+    return res.data;
+  },
+
+  getProfile: async () => {
+    const res = await apiClient.get<{ success: boolean; user: User }>('/auth/me');
+    return res.data;
+  },
+
+  logout: async () => {
+    const res = await apiClient.post<{ success: boolean }>('/auth/logout');
+    return res.data;
+  },
+
   // Dashboard
   getDashboard: async () => {
     const res = await apiClient.get<{ success: boolean; stats: DashboardStats; charts: any }>('/admin/dashboard');

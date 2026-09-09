@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { adminApi } from '../../api/adminApi';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
-import { BarChart3, Baby, Shield, Smartphone } from 'lucide-react';
+import { Baby, Shield, Smartphone } from 'lucide-react';
 
 export const AdminUsagePage: React.FC = () => {
   const [usageList, setUsageList] = useState<any[]>([]);

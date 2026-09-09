@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { adminApi } from '../../api/adminApi';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
-import { Building2, ShieldCheck, Users, Smartphone } from 'lucide-react';
+import { Building2 } from 'lucide-react';
 
 export const AdminFamiliesPage: React.FC = () => {
   const [families, setFamilies] = useState<any[]>([]);

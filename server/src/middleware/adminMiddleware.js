@@ -1,6 +1,6 @@
 /**
  * Middleware ensuring the authenticated user possesses Super Admin privileges.
- * Strictly verifies role === 'super_admin' or 'admin' and active status.
+ * Strictly verifies role === 'super_admin' and active status.
  */
 const requireSuperAdmin = (req, res, next) => {
   if (!req.user) {
@@ -12,7 +12,7 @@ const requireSuperAdmin = (req, res, next) => {
 
   const role = req.user.role;
 
-  if (role !== 'super_admin' && role !== 'admin') {
+  if (role !== 'super_admin') {
     return res.status(403).json({
       success: false,
       message: 'Forbidden: Super Admin authorization required.'
@@ -23,3 +23,4 @@ const requireSuperAdmin = (req, res, next) => {
 };
 
 module.exports = { requireSuperAdmin };
+
