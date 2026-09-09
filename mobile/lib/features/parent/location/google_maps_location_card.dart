@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/app_colors.dart';
@@ -10,11 +12,13 @@ import '../../shared/widgets/status_badge.dart';
 class GoogleMapsLocationCard extends StatefulWidget {
   final LocationModel? location;
   final String childName;
+  final double mapHeight;
 
   const GoogleMapsLocationCard({
     super.key,
     required this.location,
     this.childName = 'Child',
+    this.mapHeight = 220.0,
   });
 
   @override
@@ -26,6 +30,7 @@ class _GoogleMapsLocationCardState extends State<GoogleMapsLocationCard> {
   bool _isLoadingAddress = false;
   double? _lastLat;
   double? _lastLng;
+  final MapController _mapController = MapController();
 
   @override
   void initState() {
@@ -37,6 +42,16 @@ class _GoogleMapsLocationCardState extends State<GoogleMapsLocationCard> {
   void didUpdateWidget(covariant GoogleMapsLocationCard oldWidget) {
     super.didUpdateWidget(oldWidget);
     _fetchAddressIfNeeded();
+    if (widget.location != null &&
+        (widget.location!.latitude != oldWidget.location?.latitude ||
+            widget.location!.longitude != oldWidget.location?.longitude)) {
+      try {
+        _mapController.move(
+          LatLng(widget.location!.latitude, widget.location!.longitude),
+          15.0,
+        );
+      } catch (_) {}
+    }
   }
 
   Future<void> _fetchAddressIfNeeded() async {
@@ -129,6 +144,8 @@ class _GoogleMapsLocationCardState extends State<GoogleMapsLocationCard> {
       );
     }
 
+    final targetLatLng = LatLng(loc.latitude, loc.longitude);
+
     return Card(
       elevation: 3,
       shape: RoundedRectangleBorder(
@@ -161,7 +178,7 @@ class _GoogleMapsLocationCardState extends State<GoogleMapsLocationCard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Google Maps Live Location',
+                        'Live Map & Google Maps Location',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
@@ -238,7 +255,119 @@ class _GoogleMapsLocationCardState extends State<GoogleMapsLocationCard> {
                   ],
                 ),
 
-                const Divider(height: 20),
+                const SizedBox(height: 14),
+
+                // Interactive Visual Map Box
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: Container(
+                    height: widget.mapHeight,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Stack(
+                      children: [
+                        FlutterMap(
+                          mapController: _mapController,
+                          options: MapOptions(
+                            initialCenter: targetLatLng,
+                            initialZoom: 15.0,
+                            maxZoom: 18.0,
+                            minZoom: 3.0,
+                          ),
+                          children: [
+                            TileLayer(
+                              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                              userAgentPackageName: 'com.guardianx.app',
+                            ),
+                            MarkerLayer(
+                              markers: [
+                                Marker(
+                                  point: targetLatLng,
+                                  width: 50,
+                                  height: 50,
+                                  child: GestureDetector(
+                                    onTap: _openGoogleMaps,
+                                    child: Tooltip(
+                                      message: '${widget.childName} is here\nTap to open in Google Maps',
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.all(8),
+                                            decoration: BoxDecoration(
+                                              color: Colors.red,
+                                              shape: BoxShape.circle,
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.red.withOpacity(0.5),
+                                                  blurRadius: 10,
+                                                  spreadRadius: 3,
+                                                ),
+                                              ],
+                                              border: Border.all(color: Colors.white, width: 2),
+                                            ),
+                                            child: const Icon(
+                                              Icons.child_care,
+                                              color: Colors.white,
+                                              size: 20,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+
+                        // Map Control Floating Button
+                        Positioned(
+                          right: 8,
+                          bottom: 8,
+                          child: FloatingActionButton.small(
+                            heroTag: 'recenter_map_${loc.latitude}',
+                            backgroundColor: Colors.white,
+                            foregroundColor: Colors.black87,
+                            onPressed: () {
+                              _mapController.move(targetLatLng, 15.0);
+                            },
+                            child: const Icon(Icons.my_location, size: 18),
+                          ),
+                        ),
+
+                        // Interactive Hint Badge Overlay
+                        Positioned(
+                          left: 8,
+                          top: 8,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.7),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Row(
+                              children: [
+                                Icon(Icons.touch_app, color: Colors.white, size: 12),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Live Visual Map',
+                                  style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 14),
 
                 // Coordinates & Accuracy Row
                 Wrap(
@@ -263,7 +392,7 @@ class _GoogleMapsLocationCardState extends State<GoogleMapsLocationCard> {
                   ],
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
 
                 // Open in Google Maps Target Button
                 SizedBox(
