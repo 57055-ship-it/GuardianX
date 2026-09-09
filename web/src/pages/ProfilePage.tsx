@@ -27,8 +27,8 @@ export const ProfilePage: React.FC = () => {
   return (
     <div className="space-y-8 pb-12">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-black text-slate-100">Account & Security Settings</h1>
-        <p className="text-xs sm:text-sm text-slate-400 mt-1">
+        <h1 className="text-2xl sm:text-3xl font-black text-slate-900">Account & Security Settings</h1>
+        <p className="text-xs sm:text-sm text-slate-600 mt-1">
           Manage your Parent profile, family tenant, and subscription plan
         </p>
       </div>
@@ -36,13 +36,13 @@ export const ProfilePage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card title="Parent Profile Information">
           <div className="space-y-4 pt-2 text-xs">
-            <div className="flex items-center gap-3 pb-4 border-b border-slate-800">
-              <div className="w-14 h-14 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 font-black text-2xl">
+            <div className="flex items-center gap-3 pb-4 border-b border-slate-200">
+              <div className="w-14 h-14 rounded-2xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700 font-black text-2xl">
                 {user?.name?.[0]?.toUpperCase() || <UserIcon className="w-6 h-6" />}
               </div>
               <div>
-                <h3 className="text-base font-bold text-slate-100">{user?.name}</h3>
-                <span className="text-slate-400">{user?.email}</span>
+                <h3 className="text-base font-bold text-slate-900">{user?.name}</h3>
+                <span className="text-slate-600">{user?.email}</span>
                 <div className="mt-1">
                   <Badge variant="info" size="sm">
                     ROLE: {user?.role.toUpperCase()}
@@ -52,21 +52,21 @@ export const ProfilePage: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <div className="flex justify-between py-2 border-b border-slate-800 text-slate-400">
+              <div className="flex justify-between py-2 border-b border-slate-200 text-slate-600">
                 <span>Account ID:</span>
-                <span className="font-mono text-slate-200">{user?.id || user?._id}</span>
+                <span className="font-mono text-slate-900">{user?.id || user?._id}</span>
               </div>
-              <div className="flex justify-between py-2 border-b border-slate-800 text-slate-400">
+              <div className="flex justify-between py-2 border-b border-slate-200 text-slate-600">
                 <span>Family Household:</span>
-                <span className="font-bold text-slate-200">{tenant?.name}</span>
+                <span className="font-bold text-slate-900">{tenant?.name}</span>
               </div>
-              <div className="flex justify-between py-2 text-slate-400">
+              <div className="flex justify-between py-2 text-slate-600">
                 <span>Tenant ID:</span>
-                <span className="font-mono text-slate-200">{tenant?.id || tenant?._id}</span>
+                <span className="font-mono text-slate-900">{tenant?.id || tenant?._id}</span>
               </div>
             </div>
 
-            <div className="pt-4 border-t border-slate-800">
+            <div className="pt-4 border-t border-slate-200">
               <Button variant="danger" onClick={logout} className="w-full">
                 Sign Out of Web Portal
               </Button>
@@ -76,19 +76,19 @@ export const ProfilePage: React.FC = () => {
 
         <Card title="Subscription Plan & Entitlements">
           <div className="space-y-4 pt-2 text-xs">
-            <div className="p-4 bg-indigo-600/10 border border-indigo-500/30 rounded-2xl flex items-center justify-between">
+            <div className="p-4 bg-teal-50 border border-teal-200 rounded-2xl flex items-center justify-between">
               <div>
-                <div className="text-slate-400 font-semibold uppercase">Current Family Plan</div>
-                <div className="text-2xl font-black text-indigo-400 mt-1">{tenant?.plan} Plan</div>
-                <div className="text-slate-400 mt-0.5">
-                  Children Limit: <span className="font-bold text-slate-200">{tenant?.childrenLimit} Slots</span>
+                <div className="text-slate-600 font-semibold uppercase">Current Family Plan</div>
+                <div className="text-2xl font-black text-teal-700 mt-1">{tenant?.plan} Plan</div>
+                <div className="text-slate-600 mt-0.5">
+                  Children Limit: <span className="font-bold text-slate-900">{tenant?.childrenLimit} Slots</span>
                 </div>
               </div>
-              <Shield className="w-8 h-8 text-indigo-400" />
+              <Shield className="w-8 h-8 text-teal-600" />
             </div>
 
             <div className="space-y-2">
-              <h4 className="font-bold text-slate-300 uppercase text-[11px] tracking-wider">
+              <h4 className="font-bold text-slate-700 uppercase text-[11px] tracking-wider">
                 Select Subscription Tier:
               </h4>
               <div className="grid grid-cols-3 gap-2">
@@ -101,8 +101,8 @@ export const ProfilePage: React.FC = () => {
                       disabled={isCurrent || isUpdatingPlan}
                       className={`p-3 rounded-xl border text-center transition-all cursor-pointer ${
                         isCurrent
-                          ? 'bg-indigo-600 text-white border-indigo-500 font-bold'
-                          : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
+                          ? 'bg-teal-600 text-white border-teal-600 font-bold'
+                          : 'bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900 hover:border-slate-300'
                       }`}
                     >
                       <div className="font-bold text-xs">{plan}</div>

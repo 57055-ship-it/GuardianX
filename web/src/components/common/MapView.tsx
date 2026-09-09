@@ -48,7 +48,7 @@ export const MapView: React.FC<MapViewProps> = ({
   height = '400px',
 }) => {
   return (
-    <div style={{ height }} className="w-full rounded-2xl overflow-hidden shadow-xl border border-slate-700/60 relative z-0">
+    <div style={{ height }} className="w-full rounded-2xl overflow-hidden shadow-sm border border-slate-200 relative z-0">
       <MapContainer center={center} zoom={zoom} scrollWheelZoom={true} style={{ height: '100%', width: '100%' }}>
         <ChangeView center={center} zoom={zoom} />
         <TileLayer

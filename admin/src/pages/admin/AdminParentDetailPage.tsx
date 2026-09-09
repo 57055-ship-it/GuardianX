@@ -59,99 +59,99 @@ export const AdminParentDetailPage: React.FC = () => {
           <ArrowLeft className="w-4 h-4" />
         </Button>
         <div>
-          <h1 className="text-2xl font-bold text-slate-100 tracking-tight">{parent.name}</h1>
-          <p className="text-xs text-slate-400">{parent.email}</p>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">{parent.name}</h1>
+          <p className="text-xs text-slate-600">{parent.email}</p>
         </div>
       </div>
 
       {/* Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Profile Card */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800/80 pb-4">
-            <h3 className="text-sm font-semibold text-slate-200 flex items-center gap-2">
-              <User className="w-4 h-4 text-amber-400" /> Account Status
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4 shadow-xs">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+            <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+              <User className="w-4 h-4 text-amber-600" /> Account Status
             </h3>
             {parent.isActive ? (
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                 Active
               </span>
             ) : (
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
                 Suspended
               </span>
             )}
           </div>
 
           <div className="space-y-2 text-xs">
-            <div className="flex justify-between py-1 border-b border-slate-800/40">
-              <span className="text-slate-400">User ID</span>
-              <span className="font-mono text-slate-200">{parent._id}</span>
+            <div className="flex justify-between py-1 border-b border-slate-100">
+              <span className="text-slate-500">User ID</span>
+              <span className="font-mono text-slate-700">{parent._id}</span>
             </div>
-            <div className="flex justify-between py-1 border-b border-slate-800/40">
-              <span className="text-slate-400">Family Tenant</span>
-              <span className="font-semibold text-slate-200">{tenant?.name || 'N/A'}</span>
+            <div className="flex justify-between py-1 border-b border-slate-100">
+              <span className="text-slate-500">Family Tenant</span>
+              <span className="font-bold text-slate-900">{tenant?.name || 'N/A'}</span>
             </div>
-            <div className="flex justify-between py-1 border-b border-slate-800/40">
-              <span className="text-slate-400">Current Plan</span>
-              <span className="font-semibold text-amber-400 uppercase">{tenant?.plan || 'FREE'}</span>
+            <div className="flex justify-between py-1 border-b border-slate-100">
+              <span className="text-slate-500">Current Plan</span>
+              <span className="font-bold text-amber-700 uppercase">{tenant?.plan || 'FREE'}</span>
             </div>
             <div className="flex justify-between py-1">
-              <span className="text-slate-400">Registered Date</span>
-              <span className="text-slate-300">{new Date(parent.createdAt).toLocaleDateString()}</span>
+              <span className="text-slate-500">Registered Date</span>
+              <span className="text-slate-700">{new Date(parent.createdAt).toLocaleDateString()}</span>
             </div>
           </div>
         </div>
 
         {/* Subscription Info Card */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800/80 pb-4">
-            <h3 className="text-sm font-semibold text-slate-200 flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-sky-400" /> Subscription Info
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4 shadow-xs">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+            <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-teal-600" /> Subscription Info
             </h3>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20 uppercase">
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-teal-50 text-teal-700 border border-teal-200 uppercase">
               {subscription?.status || tenant?.subscriptionStatus || 'active'}
             </span>
           </div>
 
           <div className="space-y-2 text-xs">
-            <div className="flex justify-between py-1 border-b border-slate-800/40">
-              <span className="text-slate-400">Children Limit</span>
-              <span className="font-bold text-slate-100">{usageSummary.childrenCount} / {tenant?.childrenLimit || 1}</span>
+            <div className="flex justify-between py-1 border-b border-slate-100">
+              <span className="text-slate-500">Children Limit</span>
+              <span className="font-bold text-slate-900">{usageSummary.childrenCount} / {tenant?.childrenLimit || 1}</span>
             </div>
-            <div className="flex justify-between py-1 border-b border-slate-800/40">
-              <span className="text-slate-400">Safe Zones</span>
-              <span className="font-bold text-slate-100">{usageSummary.geofenceCount} Safe Zones</span>
+            <div className="flex justify-between py-1 border-b border-slate-100">
+              <span className="text-slate-500">Safe Zones</span>
+              <span className="font-bold text-slate-900">{usageSummary.geofenceCount} Safe Zones</span>
             </div>
             <div className="flex justify-between py-1">
-              <span className="text-slate-400">Start Date</span>
-              <span className="text-slate-300">{subscription?.startDate ? new Date(subscription.startDate).toLocaleDateString() : 'N/A'}</span>
+              <span className="text-slate-500">Start Date</span>
+              <span className="text-slate-700">{subscription?.startDate ? new Date(subscription.startDate).toLocaleDateString() : 'N/A'}</span>
             </div>
           </div>
         </div>
 
         {/* Summary Card */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
-          <h3 className="text-sm font-semibold text-slate-200 border-b border-slate-800/80 pb-4 flex items-center gap-2">
-            <Building2 className="w-4 h-4 text-emerald-400" /> Resource Usage
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4 shadow-xs">
+          <h3 className="text-sm font-bold text-slate-800 border-b border-slate-100 pb-4 flex items-center gap-2">
+            <Building2 className="w-4 h-4 text-emerald-600" /> Resource Usage
           </h3>
           <div className="grid grid-cols-2 gap-4">
-            <div className="p-3 bg-slate-950/60 border border-slate-800 rounded-xl">
-              <div className="text-[10px] uppercase font-semibold text-slate-400">Children</div>
-              <div className="text-xl font-bold text-slate-100 mt-1">{children.length}</div>
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
+              <div className="text-[10px] uppercase font-bold text-slate-500">Children</div>
+              <div className="text-xl font-black text-slate-900 mt-1">{children.length}</div>
             </div>
-            <div className="p-3 bg-slate-950/60 border border-slate-800 rounded-xl">
-              <div className="text-[10px] uppercase font-semibold text-slate-400">Devices</div>
-              <div className="text-xl font-bold text-slate-100 mt-1">{devices.length}</div>
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
+              <div className="text-[10px] uppercase font-bold text-slate-500">Devices</div>
+              <div className="text-xl font-black text-slate-900 mt-1">{devices.length}</div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Children Profiles Section */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
-        <h3 className="text-sm font-semibold text-slate-200 flex items-center gap-2">
-          <Baby className="w-4 h-4 text-pink-400" /> Children Profiles ({children.length})
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4 shadow-xs">
+        <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+          <Baby className="w-4 h-4 text-teal-600" /> Children Profiles ({children.length})
         </h3>
 
         {children.length === 0 ? (
@@ -159,16 +159,16 @@ export const AdminParentDetailPage: React.FC = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {children.map((c: any) => (
-              <div key={c._id} className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
+              <div key={c._id} className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-slate-100 text-sm">{c.name}</span>
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase ${
-                    c.profileStatus === 'paired' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                  <span className="font-bold text-slate-900 text-sm">{c.name}</span>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                    c.profileStatus === 'paired' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
                   }`}>
                     {c.profileStatus}
                   </span>
                 </div>
-                <div className="text-xs text-slate-400 flex items-center gap-2">
+                <div className="text-xs text-slate-500 flex items-center gap-2">
                   <Smartphone className="w-3.5 h-3.5" />
                   <span>Device: {c.deviceId?.deviceName || 'No paired device'}</span>
                 </div>

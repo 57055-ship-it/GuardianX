@@ -41,13 +41,13 @@ export const AdminSettingsPage: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-slate-100 tracking-tight">SaaS Platform Configuration</h1>
-        <p className="text-sm text-slate-400 mt-1">Global administrative parameters, registration toggles, and system defaults</p>
+        <h1 className="text-3xl font-black text-slate-900 tracking-tight">SaaS Platform Configuration</h1>
+        <p className="text-sm text-slate-500 mt-1">Global administrative parameters, registration toggles, and system defaults</p>
       </div>
 
       {successMsg && (
-        <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 text-sm flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4" />
+        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-sm flex items-center gap-2 font-bold">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
           <span>{successMsg}</span>
         </div>
       )}
@@ -57,20 +57,20 @@ export const AdminSettingsPage: React.FC = () => {
           <LoadingSpinner label="Loading SaaS settings..." />
         </div>
       ) : (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6">
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-6 shadow-xs">
           {settings.map((s) => (
-            <div key={s._id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800/80 pb-6 last:border-0 last:pb-0">
+            <div key={s._id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-6 last:border-0 last:pb-0">
               <div>
-                <h4 className="font-bold text-slate-100 text-sm">{s.key}</h4>
-                <p className="text-xs text-slate-400 mt-0.5">{s.description}</p>
+                <h4 className="font-bold text-slate-900 text-sm">{s.key}</h4>
+                <p className="text-xs text-slate-500 mt-0.5">{s.description}</p>
               </div>
 
               <div className="flex items-center gap-3 w-full sm:w-auto">
                 {typeof s.value === 'boolean' ? (
                   <button
                     onClick={() => handleUpdate(s.key, !s.value)}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                      s.value ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-800 text-slate-400 border border-slate-700'
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      s.value ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500 border border-slate-200'
                     }`}
                   >
                     {s.value ? 'ENABLED' : 'DISABLED'}
@@ -84,7 +84,7 @@ export const AdminSettingsPage: React.FC = () => {
                         handleUpdate(s.key, e.target.value);
                       }
                     }}
-                    className="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-slate-100 focus:outline-none focus:border-amber-500 w-full sm:w-48"
+                    className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm text-slate-900 focus:outline-none focus:border-amber-600 w-full sm:w-48"
                   />
                 )}
               </div>

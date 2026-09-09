@@ -66,8 +66,8 @@ export const DigitalWellbeingPage: React.FC = () => {
   return (
     <div className="space-y-8 pb-12">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-black text-slate-100">Digital Wellbeing</h1>
-        <p className="text-xs sm:text-sm text-slate-400 mt-1">
+        <h1 className="text-2xl sm:text-3xl font-black text-slate-900">Digital Wellbeing</h1>
+        <p className="text-xs sm:text-sm text-slate-600 mt-1">
           Monitor screen time usage and application engagement for your children
         </p>
       </div>
@@ -83,8 +83,8 @@ export const DigitalWellbeingPage: React.FC = () => {
                 onClick={() => handleSelectChild(cId)}
                 className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
                   isSelected
-                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
-                    : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-100'
+                    ? 'bg-teal-600 text-white shadow-md shadow-teal-600/20'
+                    : 'bg-white border border-slate-200 text-slate-600 hover:text-slate-900'
                 }`}
               >
                 <Smartphone className="w-4 h-4" />
@@ -103,14 +103,14 @@ export const DigitalWellbeingPage: React.FC = () => {
       ) : (
         <div className="space-y-6">
           <Card title="Today's Screen Time Summary">
-            <div className="p-6 bg-slate-950/60 rounded-2xl border border-slate-800 flex items-center justify-between">
+            <div className="p-6 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
               <div>
-                <span className="text-xs text-slate-400 font-semibold uppercase">Total Active Screen Time</span>
-                <div className="text-3xl font-black text-slate-100 mt-1">
+                <span className="text-xs text-slate-600 font-semibold uppercase">Total Active Screen Time</span>
+                <div className="text-3xl font-black text-slate-900 mt-1">
                   {Math.floor(screenTimeMinutes / 60)} hours {screenTimeMinutes % 60} minutes
                 </div>
               </div>
-              <div className="p-3 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-xl">
+              <div className="p-3 bg-teal-50 text-teal-600 border border-teal-200 rounded-xl">
                 <Clock className="w-8 h-8" />
               </div>
             </div>
@@ -118,10 +118,10 @@ export const DigitalWellbeingPage: React.FC = () => {
 
           <Card title="App Usage Analytics">
             {isIOSUnavailable ? (
-              <div className="p-8 text-center bg-slate-950/40 border border-slate-800 rounded-2xl">
-                <ShieldAlert className="w-10 h-10 text-amber-400 mx-auto mb-3" />
-                <h4 className="font-bold text-slate-200 text-sm">App Usage Unavailable on iOS</h4>
-                <p className="text-xs text-slate-400 max-w-md mx-auto mt-1">
+              <div className="p-8 text-center bg-slate-50 border border-slate-200 rounded-2xl">
+                <ShieldAlert className="w-10 h-10 text-amber-500 mx-auto mb-3" />
+                <h4 className="font-bold text-slate-900 text-sm">App Usage Unavailable on iOS</h4>
+                <p className="text-xs text-slate-600 max-w-md mx-auto mt-1">
                   Apple iOS operating system restricts third-party access to detailed app package telemetry. Overall screen time tracking remains active.
                 </p>
               </div>
@@ -134,10 +134,10 @@ export const DigitalWellbeingPage: React.FC = () => {
                 <div className="h-64 w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={appUsage}>
-                      <XAxis dataKey="appName" stroke="#94a3b8" fontSize={11} tickLine={false} />
-                      <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} />
+                      <XAxis dataKey="appName" stroke="#64748b" fontSize={11} tickLine={false} />
+                      <YAxis stroke="#64748b" fontSize={11} tickLine={false} />
                       <Tooltip
-                        contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', color: '#fff' }}
+                        contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '12px', color: '#0f172a' }}
                       />
                       <Bar dataKey="durationMinutes" radius={[8, 8, 0, 0]}>
                         {appUsage.map((_, index) => (
@@ -148,11 +148,11 @@ export const DigitalWellbeingPage: React.FC = () => {
                   </ResponsiveContainer>
                 </div>
 
-                <div className="divide-y divide-slate-800">
+                <div className="divide-y divide-slate-200">
                   {appUsage.map((app, idx) => (
                     <div key={idx} className="py-3 flex items-center justify-between text-xs">
-                      <span className="font-bold text-slate-200">{app.appName}</span>
-                      <span className="font-mono text-indigo-400 font-bold">{app.durationMinutes} mins</span>
+                      <span className="font-bold text-slate-900">{app.appName}</span>
+                      <span className="font-mono text-teal-700 font-bold">{app.durationMinutes} mins</span>
                     </div>
                   ))}
                 </div>

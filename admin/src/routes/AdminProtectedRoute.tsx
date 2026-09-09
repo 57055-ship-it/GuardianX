@@ -8,7 +8,7 @@ export const AdminProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ c
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <LoadingSpinner label="Authenticating GuardianX Super Admin Control Plane..." />
       </div>
     );

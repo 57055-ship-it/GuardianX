@@ -97,8 +97,8 @@ export const LiveLocationPage: React.FC = () => {
     <div className="space-y-8 pb-12">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-100">Live GPS Location Map</h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900">Live GPS Location Map</h1>
+          <p className="text-xs sm:text-sm text-slate-600 mt-1">
             Real GPS satellite coordinates directly transmitted from child hardware sensors (polling every 10s)
           </p>
         </div>
@@ -125,8 +125,8 @@ export const LiveLocationPage: React.FC = () => {
                 onClick={() => handleChildSelect(cId)}
                 className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
                   isSelected
-                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
-                    : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-100'
+                    ? 'bg-teal-600 text-white shadow-md shadow-teal-600/20'
+                    : 'bg-white border border-slate-200 text-slate-600 hover:text-slate-900'
                 }`}
               >
                 <Smartphone className="w-4 h-4" />
@@ -147,10 +147,10 @@ export const LiveLocationPage: React.FC = () => {
           <Card title={`Live Location: ${selectedChild?.name || ''}`} className="lg:col-span-2 space-y-4">
             {latestLocation ? (
               <>
-                <div className="p-3 bg-slate-950/80 border border-slate-800 rounded-xl flex items-center justify-between text-xs">
+                <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-indigo-400" />
-                    <span className="font-bold text-slate-200">
+                    <MapPin className="w-4 h-4 text-teal-600" />
+                    <span className="font-bold text-slate-900">
                       Lat: {latestLocation.latitude.toFixed(5)}, Lng: {latestLocation.longitude.toFixed(5)}
                     </span>
                     <Badge variant="info" size="sm">
@@ -197,12 +197,12 @@ export const LiveLocationPage: React.FC = () => {
                 />
 
                 {/* Diagnostic Telemetry Panel */}
-                <div className="p-4 bg-slate-950/90 border border-indigo-500/30 rounded-xl text-xs space-y-2">
-                  <div className="font-bold text-indigo-400 uppercase tracking-wide flex items-center justify-between">
+                <div className="p-4 bg-slate-50 border border-teal-200 rounded-xl text-xs space-y-2">
+                  <div className="font-bold text-teal-700 uppercase tracking-wide flex items-center justify-between">
                     <span>GPS Telemetry Diagnostic Debug</span>
-                    <span className="text-[10px] text-slate-400 font-mono">API: Production Render API</span>
+                    <span className="text-[10px] text-slate-500 font-mono">API: Production Render API</span>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] font-mono text-slate-300">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] font-mono text-slate-800">
                     <div><span className="text-slate-500">Source:</span> GuardianX Child Device</div>
                     <div><span className="text-slate-500">Latitude:</span> {latestLocation.latitude}</div>
                     <div><span className="text-slate-500">Longitude:</span> {latestLocation.longitude}</div>
@@ -213,9 +213,9 @@ export const LiveLocationPage: React.FC = () => {
                 </div>
               </>
             ) : (
-              <div className="p-12 text-center border border-dashed border-slate-800 rounded-2xl bg-slate-950/40">
-                <Clock className="w-10 h-10 text-slate-500 mx-auto mb-3" />
-                <h4 className="font-bold text-slate-300 text-sm">No Location Fix Available Yet</h4>
+              <div className="p-12 text-center border border-dashed border-slate-200 rounded-2xl bg-slate-50">
+                <Clock className="w-10 h-10 text-slate-400 mx-auto mb-3" />
+                <h4 className="font-bold text-slate-900 text-sm">No Location Fix Available Yet</h4>
                 <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1">
                   Waiting for child's device GPS hardware to lock satellite position and sync telemetry.
                 </p>
@@ -233,17 +233,17 @@ export const LiveLocationPage: React.FC = () => {
                 {locationHistory.map((loc, idx) => (
                   <div
                     key={loc.id || idx}
-                    className="p-3 bg-slate-950/60 border border-slate-800 rounded-xl space-y-1 text-xs"
+                    className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1 text-xs"
                   >
-                    <div className="flex items-center justify-between font-bold text-slate-200">
-                      <span className="flex items-center gap-1.5 text-indigo-400">
+                    <div className="flex items-center justify-between font-bold text-slate-900">
+                      <span className="flex items-center gap-1.5 text-teal-700">
                         <MapPin className="w-3.5 h-3.5" /> Log #{locationHistory.length - idx}
                       </span>
                       <span className="text-slate-500 font-normal">
                         {new Date(loc.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
-                    <div className="text-slate-400 font-mono text-[11px] flex justify-between">
+                    <div className="text-slate-600 font-mono text-[11px] flex justify-between">
                       <span>{loc.latitude.toFixed(5)}, {loc.longitude.toFixed(5)}</span>
                       <span className="text-slate-500">±{(loc.accuracy ?? 0).toFixed(1)}m</span>
                     </div>

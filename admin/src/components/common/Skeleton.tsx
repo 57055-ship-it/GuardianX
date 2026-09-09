@@ -18,7 +18,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
       case 'rectangular':
         return 'rounded-xl w-full h-24';
       case 'card':
-        return 'rounded-2xl w-full h-32 bg-slate-900/60 border border-slate-800/80 p-5';
+        return 'rounded-2xl w-full h-32 bg-white border border-slate-200 p-5';
       case 'table-row':
         return 'rounded-lg w-full h-12';
       case 'text':
@@ -51,7 +51,7 @@ export const CardSkeleton: React.FC<{ count?: number }> = ({ count = 4 }) => {
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 space-y-4"
+          className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4 shadow-2xs"
         >
           <div className="flex items-center justify-between">
             <Skeleton className="w-24 h-4" />

@@ -48,8 +48,8 @@ export const SOSAlertsPage: React.FC = () => {
   return (
     <div className="space-y-8 pb-12">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-black text-slate-100">SOS Panic & Safety Alerts</h1>
-        <p className="text-xs sm:text-sm text-slate-400 mt-1">
+        <h1 className="text-2xl sm:text-3xl font-black text-slate-900">SOS Panic & Safety Alerts</h1>
+        <p className="text-xs sm:text-sm text-slate-600 mt-1">
           High-priority emergency alerts and automated family safety notifications
         </p>
       </div>
@@ -64,16 +64,16 @@ export const SOSAlertsPage: React.FC = () => {
           {alerts.map((alert) => {
             const aId = alert.id || alert._id;
             return (
-              <Card key={aId} className="hover:border-slate-700">
+              <Card key={aId} className="hover:border-slate-300">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-3.5">
                     <div
                       className={`p-3 rounded-2xl border shrink-0 ${
                         alert.type === 'sos' || alert.severity === 'critical'
-                          ? 'bg-rose-500/10 text-rose-400 border-rose-500/30'
+                          ? 'bg-rose-50 text-rose-600 border-rose-200'
                           : alert.severity === 'high'
-                          ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
-                          : 'bg-sky-500/10 text-sky-400 border-sky-500/30'
+                          ? 'bg-amber-50 text-amber-600 border-amber-200'
+                          : 'bg-sky-50 text-sky-600 border-sky-200'
                       }`}
                     >
                       {alert.type === 'sos' ? <AlertTriangle className="w-6 h-6 animate-pulse" /> : <Bell className="w-6 h-6" />}
@@ -81,7 +81,7 @@ export const SOSAlertsPage: React.FC = () => {
 
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="font-bold text-slate-100 text-base">{alert.title}</h3>
+                        <h3 className="font-bold text-slate-900 text-base">{alert.title}</h3>
                         <Badge
                           variant={
                             alert.severity === 'critical' || alert.type === 'sos'
@@ -95,7 +95,7 @@ export const SOSAlertsPage: React.FC = () => {
                           {alert.type.toUpperCase()}
                         </Badge>
                       </div>
-                      <p className="text-xs text-slate-300 mt-1">{alert.message}</p>
+                      <p className="text-xs text-slate-600 mt-1">{alert.message}</p>
                       <div className="text-[11px] text-slate-500 mt-2 flex items-center gap-2">
                         <span>{new Date(alert.timestamp).toLocaleString()}</span>
                         {alert.childName && <span>• Child: {alert.childName}</span>}

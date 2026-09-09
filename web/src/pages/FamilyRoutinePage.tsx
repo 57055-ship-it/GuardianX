@@ -70,8 +70,8 @@ export const FamilyRoutinePage: React.FC = () => {
     <div className="space-y-8 pb-12">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-100">Family Routines & Values</h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900">Family Routines & Values</h1>
+          <p className="text-xs sm:text-sm text-slate-600 mt-1">
             Establish positive daily household routines and share Hadith reflections with your family
           </p>
         </div>
@@ -83,16 +83,16 @@ export const FamilyRoutinePage: React.FC = () => {
 
       {/* Hadith of the Day Banner */}
       {hadith && (
-        <div className="bg-gradient-to-br from-indigo-900/40 via-slate-900 to-slate-900 border border-indigo-500/30 rounded-3xl p-6 relative overflow-hidden">
-          <div className="flex items-center gap-2 text-indigo-400 text-xs font-bold uppercase tracking-wider mb-2">
+        <div className="bg-gradient-to-br from-teal-500/10 via-white to-slate-50 border border-slate-200 rounded-3xl p-6 relative overflow-hidden shadow-2xs">
+          <div className="flex items-center gap-2 text-teal-700 text-xs font-bold uppercase tracking-wider mb-2">
             <BookOpen className="w-4 h-4" /> Hadith Reflection of the Day
           </div>
-          <h3 className="text-lg font-bold text-slate-100 mb-2">{hadith.title}</h3>
-          <blockquote className="text-sm italic text-slate-300 bg-slate-950/60 border-l-4 border-indigo-500 p-4 rounded-r-xl my-3">
+          <h3 className="text-lg font-bold text-slate-900 mb-2">{hadith.title}</h3>
+          <blockquote className="text-sm italic text-slate-700 bg-slate-50 border-l-4 border-teal-500 p-4 rounded-r-xl my-3">
             "{hadith.text}"
           </blockquote>
-          <div className="flex items-center justify-between text-xs text-slate-400 mt-3">
-            <span className="font-semibold text-indigo-300">Source: {hadith.source}</span>
+          <div className="flex items-center justify-between text-xs text-slate-600 mt-3">
+            <span className="font-semibold text-teal-700">Source: {hadith.source}</span>
             <span className="text-slate-500">{hadith.reflection}</span>
           </div>
         </div>
@@ -107,14 +107,14 @@ export const FamilyRoutinePage: React.FC = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {routines.map((r) => (
-              <div key={r.id || r._id} className="p-4 bg-slate-950/60 border border-slate-800 rounded-xl space-y-2 text-xs">
+              <div key={r.id || r._id} className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-slate-100 text-sm">{r.title}</span>
+                  <span className="font-bold text-slate-900 text-sm">{r.title}</span>
                   <Badge variant="info" size="sm">
                     {r.timeOfDay.toUpperCase()}
                   </Badge>
                 </div>
-                {r.description && <p className="text-slate-400">{r.description}</p>}
+                {r.description && <p className="text-slate-600">{r.description}</p>}
               </div>
             ))}
           </div>
@@ -125,23 +125,23 @@ export const FamilyRoutinePage: React.FC = () => {
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Create Family Routine Item">
         <form onSubmit={handleCreateRoutine} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Title *</label>
+            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Title *</label>
             <input
               type="text"
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Morning Prayer & Quran Reading"
-              className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none"
+              className="w-full bg-slate-50 border border-slate-200 focus:border-teal-500 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Time of Day *</label>
+            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Time of Day *</label>
             <select
               value={timeOfDay}
               onChange={(e) => setTimeOfDay(e.target.value as typeof timeOfDay)}
-              className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none cursor-pointer"
+              className="w-full bg-slate-50 border border-slate-200 focus:border-teal-500 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none cursor-pointer"
             >
               <option value="morning">Morning</option>
               <option value="afternoon">Afternoon</option>
@@ -151,17 +151,17 @@ export const FamilyRoutinePage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Description</label>
+            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Description</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Optional notes or goals for this routine item..."
               rows={3}
-              className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none"
+              className="w-full bg-slate-50 border border-slate-200 focus:border-teal-500 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none"
             />
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
             <Button variant="ghost" type="button" onClick={() => setIsModalOpen(false)}>
               Cancel
             </Button>

@@ -93,8 +93,8 @@ export const SafeZonesPage: React.FC = () => {
     <div className="space-y-8 pb-12">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-100">Safe Zones & Geofences</h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900">Safe Zones & Geofences</h1>
+          <p className="text-xs sm:text-sm text-slate-600 mt-1">
             Define virtual boundaries around home, school, or dangerous areas to receive automated arrival/exit alerts
           </p>
         </div>
@@ -109,7 +109,7 @@ export const SafeZonesPage: React.FC = () => {
       </div>
 
       {error && (
-        <div className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl text-sm text-rose-400">
+        <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-sm text-rose-700">
           {error}
         </div>
       )}
@@ -152,11 +152,11 @@ export const SafeZonesPage: React.FC = () => {
               <Card key={gId} className="space-y-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className={`p-2.5 rounded-xl border ${g.type === 'danger' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'}`}>
+                    <div className={`p-2.5 rounded-xl border ${g.type === 'danger' ? 'bg-rose-50 text-rose-600 border-rose-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200'}`}>
                       <ShieldAlert className="w-5 h-5" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-slate-100">{g.name}</h3>
+                      <h3 className="font-bold text-slate-900">{g.name}</h3>
                       <div className="mt-0.5">
                         <Badge variant={g.type === 'danger' ? 'danger' : 'success'} size="sm">
                           {g.type === 'danger' ? 'Danger Zone' : 'Safe Boundary'}
@@ -173,14 +173,14 @@ export const SafeZonesPage: React.FC = () => {
                   </button>
                 </div>
 
-                <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-3 space-y-1.5 text-xs text-slate-400">
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-1.5 text-xs text-slate-600">
                   <div className="flex justify-between">
                     <span>Radius:</span>
-                    <span className="font-bold text-slate-200">{g.radius} meters</span>
+                    <span className="font-bold text-slate-900">{g.radius} meters</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Coordinates:</span>
-                    <span className="font-mono text-indigo-400">{g.latitude.toFixed(4)}, {g.longitude.toFixed(4)}</span>
+                    <span className="font-mono text-teal-700">{g.latitude.toFixed(4)}, {g.longitude.toFixed(4)}</span>
                   </div>
                 </div>
               </Card>
@@ -197,7 +197,7 @@ export const SafeZonesPage: React.FC = () => {
       >
         <form onSubmit={handleCreateGeofence} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">
+            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
               Zone Name *
             </label>
             <input
@@ -206,13 +206,13 @@ export const SafeZonesPage: React.FC = () => {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Home, School, Grandparents"
-              className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-600 focus:outline-none"
+              className="w-full bg-slate-50 border border-slate-200 focus:border-teal-500 rounded-xl px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">
+              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
                 Latitude *
               </label>
               <input
@@ -221,11 +221,11 @@ export const SafeZonesPage: React.FC = () => {
                 required
                 value={latitude}
                 onChange={(e) => setLatitude(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none font-mono"
+                className="w-full bg-slate-50 border border-slate-200 focus:border-teal-500 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none font-mono"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">
+              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
                 Longitude *
               </label>
               <input
@@ -234,14 +234,14 @@ export const SafeZonesPage: React.FC = () => {
                 required
                 value={longitude}
                 onChange={(e) => setLongitude(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none font-mono"
+                className="w-full bg-slate-50 border border-slate-200 focus:border-teal-500 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none font-mono"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">
+              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
                 Radius (Meters) *
               </label>
               <input
@@ -250,18 +250,18 @@ export const SafeZonesPage: React.FC = () => {
                 value={radius}
                 onChange={(e) => setRadius(e.target.value)}
                 placeholder="500"
-                className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none"
+                className="w-full bg-slate-50 border border-slate-200 focus:border-teal-500 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">
+              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
                 Zone Type *
               </label>
               <select
                 value={type}
                 onChange={(e) => setType(e.target.value as 'safe' | 'danger')}
-                className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none cursor-pointer"
+                className="w-full bg-slate-50 border border-slate-200 focus:border-teal-500 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none cursor-pointer"
               >
                 <option value="safe">Safe Area</option>
                 <option value="danger">Danger Zone</option>
@@ -269,7 +269,7 @@ export const SafeZonesPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
             <Button variant="ghost" type="button" onClick={() => setIsAddModalOpen(false)}>
               Cancel
             </Button>

@@ -63,8 +63,8 @@ export const ReportsPage: React.FC = () => {
     <div className="space-y-8 pb-12">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-100">Safety & Wellbeing Reports</h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900">Safety & Wellbeing Reports</h1>
+          <p className="text-xs sm:text-sm text-slate-600 mt-1">
             Automated daily and weekly activity summaries powered by GuardianX backend analytics
           </p>
         </div>
@@ -81,8 +81,8 @@ export const ReportsPage: React.FC = () => {
                 onClick={() => handleSelectChild(cId)}
                 className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   isSelected
-                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
-                    : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-100'
+                    ? 'bg-teal-600 text-white shadow-md shadow-teal-600/20'
+                    : 'bg-white border border-slate-200 text-slate-600 hover:text-slate-900'
                 }`}
               >
                 <span>{c.name}'s Report</span>
@@ -103,26 +103,26 @@ export const ReportsPage: React.FC = () => {
           <Card title="Daily Safety Report" subtitle={dailyReport?.date || 'Today'}>
             {dailyReport ? (
               <div className="space-y-4 pt-2">
-                <div className="p-4 bg-slate-950/60 border border-slate-800 rounded-xl space-y-2 text-xs">
+                <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-xs">
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Screen Time:</span>
-                    <span className="font-bold text-slate-100">{dailyReport.screenTimeMinutes} mins</span>
+                    <span className="text-slate-600">Screen Time:</span>
+                    <span className="font-bold text-slate-900">{dailyReport.screenTimeMinutes} mins</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">GPS Ping Count:</span>
-                    <span className="font-bold text-slate-100">{dailyReport.locationCount}</span>
+                    <span className="text-slate-600">GPS Ping Count:</span>
+                    <span className="font-bold text-slate-900">{dailyReport.locationCount}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Alerts Logged:</span>
-                    <span className="font-bold text-slate-100">{dailyReport.alertsCount}</span>
+                    <span className="text-slate-600">Alerts Logged:</span>
+                    <span className="font-bold text-slate-900">{dailyReport.alertsCount}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Safety Score:</span>
-                    <span className="font-bold text-indigo-400">{dailyReport.safetyScore}/100</span>
+                    <span className="text-slate-600">Safety Score:</span>
+                    <span className="font-bold text-teal-700">{dailyReport.safetyScore}/100</span>
                   </div>
                 </div>
 
-                <p className="text-xs text-slate-300 bg-indigo-500/10 border border-indigo-500/20 p-3 rounded-xl">
+                <p className="text-xs text-slate-700 bg-teal-50 border border-teal-200 p-3 rounded-xl">
                   {dailyReport.summaryText}
                 </p>
               </div>
@@ -137,22 +137,22 @@ export const ReportsPage: React.FC = () => {
           <Card title="Weekly Safety Summary" subtitle="Past 7 Days">
             {weeklyReport ? (
               <div className="space-y-4 pt-2">
-                <div className="p-4 bg-slate-950/60 border border-slate-800 rounded-xl space-y-2 text-xs">
+                <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-xs">
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Weekly Total Screen Time:</span>
-                    <span className="font-bold text-slate-100">{weeklyReport.screenTimeMinutes} mins</span>
+                    <span className="text-slate-600">Weekly Total Screen Time:</span>
+                    <span className="font-bold text-slate-900">{weeklyReport.screenTimeMinutes} mins</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Location Ping Total:</span>
-                    <span className="font-bold text-slate-100">{weeklyReport.locationCount}</span>
+                    <span className="text-slate-600">Location Ping Total:</span>
+                    <span className="font-bold text-slate-900">{weeklyReport.locationCount}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Weekly Safety Index:</span>
-                    <span className="font-bold text-emerald-400">{weeklyReport.safetyScore}/100</span>
+                    <span className="text-slate-600">Weekly Safety Index:</span>
+                    <span className="font-bold text-emerald-600">{weeklyReport.safetyScore}/100</span>
                   </div>
                 </div>
 
-                <p className="text-xs text-slate-300 bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-xl">
+                <p className="text-xs text-slate-700 bg-emerald-50 border border-emerald-200 p-3 rounded-xl">
                   {weeklyReport.summaryText}
                 </p>
               </div>

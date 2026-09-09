@@ -51,8 +51,8 @@ export const AdminPlansPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-100 tracking-tight">SaaS Plan Management</h1>
-          <p className="text-sm text-slate-400 mt-1">Configure pricing, resource limits, and feature entitlements for all tiers</p>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">SaaS Plan Management</h1>
+          <p className="text-sm text-slate-600 mt-1">Configure pricing, resource limits, and feature entitlements for all tiers</p>
         </div>
         <Button
           onClick={() =>
@@ -102,56 +102,56 @@ export const AdminPlansPage: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {plans.map((p) => (
-            <div key={p._id} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between space-y-6 relative overflow-hidden">
+            <div key={p._id} className="bg-white border border-slate-200 rounded-2xl p-6 flex flex-col justify-between space-y-6 relative overflow-hidden shadow-xs">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-extrabold tracking-wider uppercase text-amber-400">{p.slug}</span>
+                  <span className="text-xs font-extrabold tracking-wider uppercase text-amber-700">{p.slug}</span>
                   <button
                     onClick={() => setSelectedPlan(p)}
-                    className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all"
+                    className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all cursor-pointer"
                   >
                     <Edit2 className="w-4 h-4" />
                   </button>
                 </div>
 
                 <div>
-                  <h3 className="text-xl font-bold text-slate-100">{p.name}</h3>
-                  <p className="text-xs text-slate-400 mt-1 min-h-[32px]">{p.description}</p>
+                  <h3 className="text-xl font-black text-slate-900">{p.name}</h3>
+                  <p className="text-xs text-slate-500 mt-1 min-h-[32px]">{p.description}</p>
                 </div>
 
-                <div className="text-2xl font-extrabold text-slate-100">
+                <div className="text-2xl font-black text-slate-900">
                   {p.price > 0 ? `$${p.price}` : 'Free'}{' '}
                   <span className="text-xs font-normal text-slate-500">/ {p.billingInterval}</span>
                 </div>
 
-                <div className="border-t border-slate-800/80 pt-4 space-y-2 text-xs">
-                  <div className="flex justify-between py-1 border-b border-slate-800/40">
-                    <span className="text-slate-400">Max Children</span>
-                    <span className="font-bold text-amber-400">{p.limits?.maxChildren}</span>
+                <div className="border-t border-slate-100 pt-4 space-y-2 text-xs">
+                  <div className="flex justify-between py-1 border-b border-slate-100">
+                    <span className="text-slate-500">Max Children</span>
+                    <span className="font-extrabold text-amber-700">{p.limits?.maxChildren}</span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-slate-800/40">
-                    <span className="text-slate-400">Max Devices</span>
-                    <span className="font-semibold text-slate-200">{p.limits?.maxDevices}</span>
+                  <div className="flex justify-between py-1 border-b border-slate-100">
+                    <span className="text-slate-500">Max Devices</span>
+                    <span className="font-bold text-slate-800">{p.limits?.maxDevices}</span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-slate-800/40">
-                    <span className="text-slate-400">Max Safe Zones</span>
-                    <span className="font-semibold text-slate-200">{p.limits?.maxSafeZones}</span>
+                  <div className="flex justify-between py-1 border-b border-slate-100">
+                    <span className="text-slate-500">Max Safe Zones</span>
+                    <span className="font-bold text-slate-800">{p.limits?.maxSafeZones}</span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-slate-800/40">
-                    <span className="text-slate-400">Location History</span>
-                    <span className="font-semibold text-slate-200">{p.features?.locationHistoryEnabled ? `${p.limits?.locationHistoryDays} Days` : 'Disabled'}</span>
+                  <div className="flex justify-between py-1 border-b border-slate-100">
+                    <span className="text-slate-500">Location History</span>
+                    <span className="font-bold text-slate-800">{p.features?.locationHistoryEnabled ? `${p.limits?.locationHistoryDays} Days` : 'Disabled'}</span>
                   </div>
                   <div className="flex justify-between py-1">
-                    <span className="text-slate-400">Advanced Reports</span>
-                    <span className="font-semibold text-slate-200">{p.features?.advancedReportsEnabled ? 'Enabled' : 'Disabled'}</span>
+                    <span className="text-slate-500">Advanced Reports</span>
+                    <span className="font-bold text-slate-800">{p.features?.advancedReportsEnabled ? 'Enabled' : 'Disabled'}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs">
+              <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
                 <span className="text-slate-500">{p.trialDays} Days Trial</span>
-                <span className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase ${
-                  p.active ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-800 text-slate-400'
+                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                  p.active ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500'
                 }`}>
                   {p.active ? 'Active' : 'Inactive'}
                 </span>
@@ -167,41 +167,41 @@ export const AdminPlansPage: React.FC = () => {
           <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold uppercase text-slate-400 mb-1">Plan Name</label>
+                <label className="block text-xs font-bold uppercase text-slate-700 mb-1">Plan Name</label>
                 <input
                   type="text"
                   value={selectedPlan.name || ''}
                   onChange={(e) => setSelectedPlan({ ...selectedPlan, name: e.target.value })}
                   placeholder="e.g. Family Plus"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-slate-100"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-900"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase text-slate-400 mb-1">Slug Key</label>
+                <label className="block text-xs font-bold uppercase text-slate-700 mb-1">Slug Key</label>
                 <input
                   type="text"
                   value={selectedPlan.slug || ''}
                   onChange={(e) => setSelectedPlan({ ...selectedPlan, slug: e.target.value.toLowerCase() })}
                   placeholder="e.g. family-plus"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-slate-100"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-900"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold uppercase text-slate-400 mb-1">Price ($)</label>
+                <label className="block text-xs font-bold uppercase text-slate-700 mb-1">Price ($)</label>
                 <input
                   type="number"
                   value={selectedPlan.price ?? 0}
                   onChange={(e) => setSelectedPlan({ ...selectedPlan, price: parseFloat(e.target.value) || 0 })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-slate-100"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-900"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase text-slate-400 mb-1">Max Children Limit</label>
+                <label className="block text-xs font-bold uppercase text-slate-700 mb-1">Max Children Limit</label>
                 <input
                   type="number"
                   value={selectedPlan.limits?.maxChildren ?? 1}
@@ -211,14 +211,14 @@ export const AdminPlansPage: React.FC = () => {
                       limits: { ...selectedPlan.limits!, maxChildren: parseInt(e.target.value) || 1 }
                     })
                   }
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-slate-100 font-bold text-amber-400"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-900 font-bold text-amber-700"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold uppercase text-slate-400 mb-1">Max Safe Zones</label>
+                <label className="block text-xs font-bold uppercase text-slate-700 mb-1">Max Safe Zones</label>
                 <input
                   type="number"
                   value={selectedPlan.limits?.maxSafeZones ?? 2}
@@ -228,12 +228,12 @@ export const AdminPlansPage: React.FC = () => {
                       limits: { ...selectedPlan.limits!, maxSafeZones: parseInt(e.target.value) || 1 }
                     })
                   }
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-slate-100"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-900"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase text-slate-400 mb-1">Max Devices</label>
+                <label className="block text-xs font-bold uppercase text-slate-700 mb-1">Max Devices</label>
                 <input
                   type="number"
                   value={selectedPlan.limits?.maxDevices ?? 2}
@@ -243,15 +243,15 @@ export const AdminPlansPage: React.FC = () => {
                       limits: { ...selectedPlan.limits!, maxDevices: parseInt(e.target.value) || 1 }
                     })
                   }
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-slate-100"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-900"
                 />
               </div>
             </div>
 
-            <div className="border-t border-slate-800 pt-4 space-y-2">
-              <span className="block text-xs font-semibold uppercase text-slate-400 mb-2">Feature Toggles</span>
+            <div className="border-t border-slate-200 pt-4 space-y-2">
+              <span className="block text-xs font-bold uppercase text-slate-700 mb-2">Feature Toggles</span>
               <div className="grid grid-cols-2 gap-2 text-xs">
-                <label className="flex items-center gap-2 p-2 bg-slate-950 border border-slate-800 rounded-lg cursor-pointer">
+                <label className="flex items-center gap-2 p-2 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer text-slate-800 font-semibold">
                   <input
                     type="checkbox"
                     checked={selectedPlan.features?.locationHistoryEnabled ?? false}
@@ -265,7 +265,21 @@ export const AdminPlansPage: React.FC = () => {
                   <span>Location History</span>
                 </label>
 
-                <label className="flex items-center gap-2 p-2 bg-slate-950 border border-slate-800 rounded-lg cursor-pointer">
+                <label className="flex items-center gap-2 p-2 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer text-slate-800 font-semibold">
+                  <input
+                    type="checkbox"
+                    checked={selectedPlan.features?.locationHistoryEnabled ?? false}
+                    onChange={(e) =>
+                      setSelectedPlan({
+                        ...selectedPlan,
+                        features: { ...selectedPlan.features!, locationHistoryEnabled: e.target.checked }
+                      })
+                    }
+                  />
+                  <span>Location History</span>
+                </label>
+
+                <label className="flex items-center gap-2 p-2 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer">
                   <input
                     type="checkbox"
                     checked={selectedPlan.features?.advancedReportsEnabled ?? false}
@@ -281,7 +295,7 @@ export const AdminPlansPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
+            <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
               <Button variant="secondary" onClick={() => setSelectedPlan(null)}>
                 Cancel
               </Button>

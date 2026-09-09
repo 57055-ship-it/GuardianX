@@ -70,7 +70,7 @@ export const DashboardPage: React.FC = () => {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="h-10 bg-slate-800/60 rounded-xl w-1/3 animate-skeleton" />
+        <div className="h-10 bg-slate-200 rounded-xl w-1/3 animate-skeleton" />
         <CardSkeleton count={4} />
       </div>
     );
@@ -79,17 +79,17 @@ export const DashboardPage: React.FC = () => {
   return (
     <div className="space-y-8 pb-12">
       {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-indigo-900/40 via-slate-900 to-slate-900 p-6 border border-indigo-500/20 rounded-3xl">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-teal-500/10 via-white to-slate-50 p-6 border border-slate-200 rounded-3xl shadow-xs">
         <div>
-          <div className="flex items-center gap-2 text-indigo-400 font-semibold text-xs tracking-wider uppercase mb-1">
+          <div className="flex items-center gap-2 text-teal-600 font-semibold text-xs tracking-wider uppercase mb-1">
             <Sparkles className="w-4 h-4" /> Parent Safety Center
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-100">
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900">
             Welcome back, {user?.name || 'Parent'}
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Family: <span className="text-slate-200 font-semibold">{tenant?.name}</span> | Plan:{' '}
-            <span className="text-indigo-400 font-bold">{tenant?.plan}</span> ({childrenList.length}/{childrenLimit} slots used)
+          <p className="text-xs sm:text-sm text-slate-600 mt-1">
+            Family: <span className="text-slate-900 font-semibold">{tenant?.name}</span> | Plan:{' '}
+            <span className="text-teal-600 font-bold">{tenant?.plan}</span> ({childrenList.length}/{childrenLimit} slots used)
           </p>
         </div>
 
@@ -108,7 +108,7 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {error && (
-        <div className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl flex items-center justify-between text-sm text-rose-400">
+        <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl flex items-center justify-between text-sm text-rose-700">
           <span>{error}</span>
           <Button variant="outline" size="sm" onClick={loadDashboardData}>
             Retry
@@ -118,28 +118,28 @@ export const DashboardPage: React.FC = () => {
 
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="hover:border-indigo-500/40">
+        <Card className="hover:border-teal-500/40">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-400 uppercase">Monitored Children</span>
-            <div className="p-2 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-xl">
+            <span className="text-xs font-bold text-slate-500 uppercase">Monitored Children</span>
+            <div className="p-2 bg-teal-50 text-teal-600 border border-teal-200 rounded-xl">
               <Users className="w-5 h-5" />
             </div>
           </div>
           <div className="mt-4 flex items-baseline justify-between">
-            <span className="text-3xl font-black text-slate-100">{childrenList.length}</span>
-            <span className="text-xs text-slate-400">{pairedChildren.length} Paired</span>
+            <span className="text-3xl font-black text-slate-900">{childrenList.length}</span>
+            <span className="text-xs text-slate-500">{pairedChildren.length} Paired</span>
           </div>
         </Card>
 
         <Card className="hover:border-emerald-500/40">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-400 uppercase">Online Devices</span>
-            <div className="p-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-xl">
+            <span className="text-xs font-bold text-slate-500 uppercase">Online Devices</span>
+            <div className="p-2 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-xl">
               <Smartphone className="w-5 h-5" />
             </div>
           </div>
           <div className="mt-4 flex items-baseline justify-between">
-            <span className="text-3xl font-black text-slate-100">{onlineDevicesCount}</span>
+            <span className="text-3xl font-black text-slate-900">{onlineDevicesCount}</span>
             <Badge variant={onlineDevicesCount > 0 ? 'success' : 'neutral'} size="sm">
               {onlineDevicesCount > 0 ? 'Connected' : 'Standby'}
             </Badge>
@@ -148,26 +148,26 @@ export const DashboardPage: React.FC = () => {
 
         <Card className="hover:border-amber-500/40">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-400 uppercase">Active Safe Zones</span>
-            <div className="p-2 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-xl">
+            <span className="text-xs font-bold text-slate-500 uppercase">Active Safe Zones</span>
+            <div className="p-2 bg-amber-50 text-amber-600 border border-amber-200 rounded-xl">
               <ShieldAlert className="w-5 h-5" />
             </div>
           </div>
           <div className="mt-4 flex items-baseline justify-between">
-            <span className="text-3xl font-black text-slate-100">{geofences.length}</span>
-            <span className="text-xs text-slate-400">Configured</span>
+            <span className="text-3xl font-black text-slate-900">{geofences.length}</span>
+            <span className="text-xs text-slate-500">Configured</span>
           </div>
         </Card>
 
         <Card className="hover:border-rose-500/40">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-400 uppercase">Active Alerts</span>
-            <div className="p-2 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-xl">
+            <span className="text-xs font-bold text-slate-500 uppercase">Active Alerts</span>
+            <div className="p-2 bg-rose-50 text-rose-600 border border-rose-200 rounded-xl">
               <Bell className="w-5 h-5" />
             </div>
           </div>
           <div className="mt-4 flex items-baseline justify-between">
-            <span className="text-3xl font-black text-slate-100">{unreadAlertsCount}</span>
+            <span className="text-3xl font-black text-slate-900">{unreadAlertsCount}</span>
             <Badge variant={unreadAlertsCount > 0 ? 'danger' : 'success'} size="sm">
               {unreadAlertsCount > 0 ? 'Action Needed' : 'All Clear'}
             </Badge>
@@ -178,8 +178,8 @@ export const DashboardPage: React.FC = () => {
       {/* Children Status Overview */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-slate-100">Children & Device Overview</h2>
-          <Link to="/family" className="text-xs text-indigo-400 font-bold hover:underline flex items-center gap-1">
+          <h2 className="text-xl font-bold text-slate-900">Children & Device Overview</h2>
+          <Link to="/family" className="text-xs text-teal-600 font-bold hover:underline flex items-center gap-1">
             Manage Family <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -202,11 +202,11 @@ export const DashboardPage: React.FC = () => {
               <Card key={child.id || child._id} className="relative group">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 font-black text-lg">
+                    <div className="w-11 h-11 rounded-2xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700 font-black text-lg">
                       {child.name?.[0]?.toUpperCase() || 'C'}
                     </div>
                     <div>
-                      <h3 className="font-bold text-slate-100">{child.name}</h3>
+                      <h3 className="font-bold text-slate-900">{child.name}</h3>
                       <div className="mt-0.5">
                         <Badge
                           variant={child.profileStatus === 'paired' ? 'success' : 'warning'}
@@ -219,31 +219,31 @@ export const DashboardPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="mt-5 pt-4 border-t border-slate-800 space-y-2 text-xs">
-                  <div className="flex items-center justify-between text-slate-400">
+                <div className="mt-5 pt-4 border-t border-slate-200 space-y-2 text-xs">
+                  <div className="flex items-center justify-between text-slate-600">
                     <span className="flex items-center gap-1.5">
-                      <Smartphone className="w-3.5 h-3.5 text-slate-500" /> Device:
+                      <Smartphone className="w-3.5 h-3.5 text-slate-400" /> Device:
                     </span>
-                    <span className="font-semibold text-slate-200">
+                    <span className="font-semibold text-slate-900">
                       {child.device?.deviceName || 'No device linked'}
                     </span>
                   </div>
 
                   {child.device && (
                     <>
-                      <div className="flex items-center justify-between text-slate-400">
+                      <div className="flex items-center justify-between text-slate-600">
                         <span className="flex items-center gap-1.5">
-                          <Battery className="w-3.5 h-3.5 text-slate-500" /> Battery:
+                          <Battery className="w-3.5 h-3.5 text-slate-400" /> Battery:
                         </span>
-                        <span className="font-semibold text-slate-200">
+                        <span className="font-semibold text-slate-900">
                           {child.device.batteryLevel}% {child.device.isOnline ? '(Online)' : '(Offline)'}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between text-slate-400">
+                      <div className="flex items-center justify-between text-slate-600">
                         <span className="flex items-center gap-1.5">
-                          <Clock className="w-3.5 h-3.5 text-slate-500" /> Platform:
+                          <Clock className="w-3.5 h-3.5 text-slate-400" /> Platform:
                         </span>
-                        <span className="font-semibold text-slate-200 uppercase">
+                        <span className="font-semibold text-slate-900 uppercase">
                           {child.device.platform}
                         </span>
                       </div>
@@ -267,16 +267,16 @@ export const DashboardPage: React.FC = () => {
       {/* Recent Alerts Feed */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-slate-100">Recent Safety Alerts</h2>
-          <Link to="/alerts" className="text-xs text-indigo-400 font-bold hover:underline flex items-center gap-1">
+          <h2 className="text-xl font-bold text-slate-900">Recent Safety Alerts</h2>
+          <Link to="/alerts" className="text-xs text-teal-600 font-bold hover:underline flex items-center gap-1">
             View All Alerts <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
         {alerts.length === 0 ? (
           <Card>
-            <div className="text-center py-6 text-slate-400 text-sm">
-              <CheckCircle2Icon className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
+            <div className="text-center py-6 text-slate-500 text-sm">
+              <CheckCircle2Icon className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
               <span>No alerts recorded for your family. All clear!</span>
             </div>
           </Card>
@@ -285,23 +285,23 @@ export const DashboardPage: React.FC = () => {
             {alerts.slice(0, 5).map((alert) => (
               <div
                 key={alert.id || alert._id}
-                className="bg-slate-900 border border-slate-800 hover:border-slate-700 p-4 rounded-xl flex items-center justify-between gap-4"
+                className="bg-white border border-slate-200 hover:border-slate-300 p-4 rounded-xl flex items-center justify-between gap-4 shadow-2xs"
               >
                 <div className="flex items-center gap-3">
                   <div
                     className={`p-2.5 rounded-xl ${
                       alert.severity === 'critical'
-                        ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
+                        ? 'bg-rose-50 text-rose-600 border border-rose-200'
                         : alert.severity === 'high'
-                        ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
-                        : 'bg-sky-500/10 text-sky-400 border border-sky-500/30'
+                        ? 'bg-amber-50 text-amber-600 border border-amber-200'
+                        : 'bg-sky-50 text-sky-600 border border-sky-200'
                     }`}
                   >
                     <AlertTriangle className="w-4 h-4" />
                   </div>
                   <div>
-                    <div className="font-bold text-slate-200 text-sm">{alert.title}</div>
-                    <div className="text-xs text-slate-400">{alert.message}</div>
+                    <div className="font-bold text-slate-900 text-sm">{alert.title}</div>
+                    <div className="text-xs text-slate-600">{alert.message}</div>
                   </div>
                 </div>
 

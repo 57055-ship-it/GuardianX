@@ -96,35 +96,35 @@ export const AdminParentsPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-100 tracking-tight">Parents Directory</h1>
-          <p className="text-sm text-slate-400 mt-1">Manage GuardianX parent accounts, subscriptions, and limits</p>
-        </div>
+        <h1 className="text-3xl font-black text-slate-900 tracking-tight">Parents Directory</h1>
+        <p className="text-sm text-slate-500 mt-1">Manage GuardianX parent accounts, subscriptions, and limits</p>
+      </div>
       </div>
 
       {feedbackMessage && (
-        <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 text-sm flex items-center justify-between">
+        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-sm flex items-center justify-between">
           <span>{feedbackMessage}</span>
-          <button onClick={() => setFeedbackMessage(null)} className="text-xs underline">Dismiss</button>
+          <button onClick={() => setFeedbackMessage(null)} className="text-xs underline font-bold">Dismiss</button>
         </div>
       )}
 
       {/* Controls / Search & Filters */}
-      <div className="flex flex-col sm:flex-row items-center gap-4 bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+      <div className="flex flex-col sm:flex-row items-center gap-4 bg-white border border-slate-200 p-4 rounded-2xl shadow-xs">
         <div className="relative flex-1 w-full">
-          <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search parent name or email..."
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500"
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-amber-600"
           />
         </div>
 
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-slate-300 focus:outline-none focus:border-amber-500 w-full sm:w-auto"
+          className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm text-slate-700 focus:outline-none focus:border-amber-600 w-full sm:w-auto"
         >
           <option value="">All Statuses</option>
           <option value="active">Active Only</option>
@@ -133,7 +133,7 @@ export const AdminParentsPage: React.FC = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+      <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
         {isLoading ? (
           <div className="py-16 flex justify-center">
             <LoadingSpinner label="Loading parents database..." />
@@ -142,8 +142,8 @@ export const AdminParentsPage: React.FC = () => {
           <div className="py-16 text-center text-slate-500 text-sm">No parent accounts found matching your query.</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-300">
-              <thead className="bg-slate-950/80 text-xs font-semibold uppercase text-slate-400 border-b border-slate-800">
+            <table className="w-full text-left text-sm text-slate-700">
+              <thead className="bg-slate-50 text-xs font-bold uppercase text-slate-600 border-b border-slate-200">
                 <tr>
                   <th className="px-6 py-4">Parent Details</th>
                   <th className="px-6 py-4">Family / Plan</th>
@@ -152,30 +152,30 @@ export const AdminParentsPage: React.FC = () => {
                   <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-slate-100">
                 {parents.map((p) => (
-                  <tr key={p._id || p.id} className="hover:bg-slate-800/30 transition-all">
+                  <tr key={p._id || p.id} className="hover:bg-slate-50/80 transition-all">
                     <td className="px-6 py-4">
-                      <div className="font-semibold text-slate-100">{p.name}</div>
-                      <div className="text-xs text-slate-400">{p.email}</div>
+                      <div className="font-bold text-slate-900">{p.name}</div>
+                      <div className="text-xs text-slate-500">{p.email}</div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-xs font-medium text-slate-200">{p.tenantId?.name || 'Family'}</div>
-                      <span className="inline-block mt-1 px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                      <div className="text-xs font-bold text-slate-800">{p.tenantId?.name || 'Family'}</div>
+                      <span className="inline-block mt-1 px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
                         {p.plan}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-xs font-medium text-slate-300">
-                      <div>{p.childrenCount} Children</div>
+                    <td className="px-6 py-4 text-xs font-medium text-slate-700">
+                      <div className="font-bold text-slate-900">{p.childrenCount} Children</div>
                       <div className="text-slate-500">{p.devicesCount} Devices</div>
                     </td>
                     <td className="px-6 py-4">
                       {p.isActive ? (
-                        <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                           Active
                         </span>
                       ) : (
-                        <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                        <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
                           Suspended
                         </span>
                       )}
@@ -183,7 +183,7 @@ export const AdminParentsPage: React.FC = () => {
                     <td className="px-6 py-4 text-right space-x-2">
                       <button
                         onClick={() => navigate(`/parents/${p._id || p.id}`)}
-                        className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all"
+                        className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all cursor-pointer"
                         title="View Details"
                       >
                         <Eye className="w-4 h-4" />
@@ -193,17 +193,17 @@ export const AdminParentsPage: React.FC = () => {
                           setSelectedParentForPlan(p);
                           setSelectedPlanSlug((p.plan || 'FREE').toLowerCase());
                         }}
-                        className="p-2 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 transition-all"
+                        className="p-2 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 transition-all cursor-pointer"
                         title="Assign Plan"
                       >
                         <PackageCheck className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => setSelectedParentForSuspend(p)}
-                        className={`p-2 rounded-lg transition-all ${
+                        className={`p-2 rounded-lg transition-all cursor-pointer ${
                           p.isActive
-                            ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-400'
-                            : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400'
+                            ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200'
+                            : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200'
                         }`}
                         title={p.isActive ? 'Suspend Account' : 'Reactivate Account'}
                       >
@@ -222,14 +222,14 @@ export const AdminParentsPage: React.FC = () => {
       {selectedParentForPlan && (
         <Modal isOpen={true} onClose={() => setSelectedParentForPlan(null)} title="Assign SaaS Plan">
           <div className="space-y-4">
-            <p className="text-sm text-slate-300">
-              Select a plan to assign to <strong className="text-slate-100">{selectedParentForPlan.email}</strong>.
+            <p className="text-sm text-slate-600">
+              Select a plan to assign to <strong className="text-slate-900">{selectedParentForPlan.email}</strong>.
             </p>
 
             <select
               value={selectedPlanSlug}
               onChange={(e) => setSelectedPlanSlug(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-amber-500"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-amber-600"
             >
               {plansList.map((plan) => (
                 <option key={plan.slug} value={plan.slug}>
@@ -242,7 +242,7 @@ export const AdminParentsPage: React.FC = () => {
               <Button variant="secondary" onClick={() => setSelectedParentForPlan(null)}>
                 Cancel
               </Button>
-              <Button isLoading={isAssigningPlan} onClick={handleAssignPlan} className="bg-amber-500 text-slate-950 font-bold">
+              <Button isLoading={isAssigningPlan} onClick={handleAssignPlan} className="bg-amber-600 text-white font-bold">
                 Assign Plan
               </Button>
             </div>
@@ -254,7 +254,7 @@ export const AdminParentsPage: React.FC = () => {
       {selectedParentForSuspend && (
         <Modal isOpen={true} onClose={() => setSelectedParentForSuspend(null)} title={selectedParentForSuspend.isActive ? 'Suspend Parent Account' : 'Reactivate Parent Account'}>
           <div className="space-y-4">
-            <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-400 text-sm flex items-start gap-3">
+            <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-sm flex items-start gap-3">
               <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
               <span>
                 {selectedParentForSuspend.isActive
@@ -265,13 +265,13 @@ export const AdminParentsPage: React.FC = () => {
 
             {selectedParentForSuspend.isActive && (
               <div>
-                <label className="block text-xs font-semibold uppercase text-slate-400 mb-2">Reason for Suspension</label>
+                <label className="block text-xs font-bold uppercase text-slate-700 mb-2">Reason for Suspension</label>
                 <input
                   type="text"
                   value={suspendReason}
                   onChange={(e) => setSuspendReason(e.target.value)}
                   placeholder="e.g. Terms violation or requested deactivation"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-amber-500"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-amber-600"
                 />
               </div>
             )}

@@ -18,7 +18,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
       case 'rectangular':
         return 'rounded-xl w-full h-24';
       case 'card':
-        return 'rounded-2xl w-full h-32 bg-slate-900/60 border border-slate-800/80 p-5';
+        return 'rounded-2xl w-full h-32 bg-white border border-slate-200 p-5';
       case 'table-row':
         return 'rounded-lg w-full h-12';
       case 'text':
