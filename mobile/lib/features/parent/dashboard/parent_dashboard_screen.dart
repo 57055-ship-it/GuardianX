@@ -338,7 +338,9 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                         children: [
                           Icon(Icons.check_circle_outline, color: AppColors.success),
                           SizedBox(width: 12),
-                          Text('No security alerts or distress signals detected.'),
+                          Expanded(
+                            child: Text('No security alerts or distress signals detected.'),
+                          ),
                         ],
                       ),
                     ),
