@@ -66,6 +66,9 @@ exports.getChildren = async (req, res) => {
               profileStatus: 'paired'
             }).exec();
           }
+        if (child.deviceId && typeof child.deviceId === 'object') {
+          child.device = child.deviceId;
+          child.profileStatus = 'paired';
         }
         return child;
       })
@@ -113,6 +116,10 @@ exports.getChildById = async (req, res) => {
           profileStatus: 'paired'
         }).exec();
       }
+    }
+    if (child.deviceId && typeof child.deviceId === 'object') {
+      child.device = child.deviceId;
+      child.profileStatus = 'paired';
     }
 
     return res.status(200).json({

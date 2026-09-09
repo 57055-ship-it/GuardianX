@@ -198,68 +198,72 @@ export const DashboardPage: React.FC = () => {
           />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {childrenList.map((child) => (
-              <Card key={child.id || child._id} className="relative group">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-2xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700 font-black text-lg">
-                      {child.name?.[0]?.toUpperCase() || 'C'}
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-slate-900">{child.name}</h3>
-                      <div className="mt-0.5">
-                        <Badge
-                          variant={child.profileStatus === 'paired' ? 'success' : 'warning'}
-                          size="sm"
-                        >
-                          {child.profileStatus === 'paired' ? 'Device Paired' : 'Unpaired'}
-                        </Badge>
+            {childrenList.map((child) => {
+              const device =
+                child.device ||
+                (typeof child.deviceId === 'object' && child.deviceId ? child.deviceId : null);
+              const isPaired = child.profileStatus === 'paired' || !!device;
+
+              return (
+                <Card key={child.id || child._id} className="relative flex flex-col justify-between">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-2xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700 font-bold text-lg">
+                        {child.name[0].toUpperCase()}
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-slate-900 text-base">{child.name}</h4>
+                        <div className="mt-1 flex items-center gap-2">
+                          <Badge variant={isPaired ? 'success' : 'warning'} size="sm">
+                            {isPaired ? 'Device Paired' : 'Unpaired'}
+                          </Badge>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="mt-5 pt-4 border-t border-slate-200 space-y-2 text-xs">
-                  <div className="flex items-center justify-between text-slate-600">
-                    <span className="flex items-center gap-1.5">
-                      <Smartphone className="w-3.5 h-3.5 text-slate-400" /> Device:
-                    </span>
-                    <span className="font-semibold text-slate-900">
-                      {child.device?.deviceName || 'No device linked'}
-                    </span>
+                  <div className="mt-5 pt-4 border-t border-slate-200 space-y-2 text-xs">
+                    <div className="flex items-center justify-between text-slate-600">
+                      <span className="flex items-center gap-1.5">
+                        <Smartphone className="w-3.5 h-3.5 text-slate-400" /> Device:
+                      </span>
+                      <span className="font-semibold text-slate-900">
+                        {device?.deviceName || (isPaired ? `${child.name}'s Device` : 'No device linked')}
+                      </span>
+                    </div>
+
+                    {isPaired && (
+                      <>
+                        <div className="flex items-center justify-between text-slate-600">
+                          <span className="flex items-center gap-1.5">
+                            <Battery className="w-3.5 h-3.5 text-slate-400" /> Battery:
+                          </span>
+                          <span className="font-semibold text-slate-900">
+                            {device?.batteryLevel ?? 100}% {device?.isOnline ?? true ? '(Online)' : '(Offline)'}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-slate-600">
+                          <span className="flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5 text-slate-400" /> Platform:
+                          </span>
+                          <span className="font-semibold text-slate-900 uppercase">
+                            {device?.platform || 'ANDROID'}
+                          </span>
+                        </div>
+                      </>
+                    )}
                   </div>
 
-                  {child.device && (
-                    <>
-                      <div className="flex items-center justify-between text-slate-600">
-                        <span className="flex items-center gap-1.5">
-                          <Battery className="w-3.5 h-3.5 text-slate-400" /> Battery:
-                        </span>
-                        <span className="font-semibold text-slate-900">
-                          {child.device.batteryLevel}% {child.device.isOnline ? '(Online)' : '(Offline)'}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between text-slate-600">
-                        <span className="flex items-center gap-1.5">
-                          <Clock className="w-3.5 h-3.5 text-slate-400" /> Platform:
-                        </span>
-                        <span className="font-semibold text-slate-900 uppercase">
-                          {child.device.platform}
-                        </span>
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                <div className="mt-5">
-                  <Link to={`/children/${child.id || child._id}`}>
-                    <Button variant="outline" size="sm" className="w-full">
-                      View Safety Details
-                    </Button>
-                  </Link>
-                </div>
-              </Card>
-            ))}
+                  <div className="mt-5">
+                    <Link to={`/children/${child.id || child._id}`}>
+                      <Button variant="outline" size="sm" className="w-full">
+                        View Safety Details
+                      </Button>
+                    </Link>
+                  </div>
+                </Card>
+              );
+            })}
           </div>
         )}
       </div>

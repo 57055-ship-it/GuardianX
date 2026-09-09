@@ -161,8 +161,13 @@ export const FamilyManagementPage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {childrenList.map((child) => {
             const childId = child.id || child._id;
+            const device =
+              child.device ||
+              (typeof child.deviceId === 'object' && child.deviceId ? child.deviceId : null);
+            const isPaired = child.profileStatus === 'paired' || !!device;
+
             return (
-              <Card key={childId} className="space-y-4">
+              <Card key={childId} className="flex flex-col justify-between space-y-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-2xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700 font-black text-xl">
@@ -172,10 +177,10 @@ export const FamilyManagementPage: React.FC = () => {
                       <h3 className="text-lg font-bold text-slate-900">{child.name}</h3>
                       <div className="flex items-center gap-2 mt-1">
                         <Badge
-                          variant={child.profileStatus === 'paired' ? 'success' : 'warning'}
+                          variant={isPaired ? 'success' : 'warning'}
                           size="sm"
                         >
-                          {child.profileStatus === 'paired' ? 'Paired' : 'Unpaired'}
+                          {isPaired ? 'Paired' : 'Unpaired'}
                         </Badge>
                       </div>
                     </div>
@@ -196,17 +201,17 @@ export const FamilyManagementPage: React.FC = () => {
                       <Smartphone className="w-3.5 h-3.5 text-slate-400" /> Device Name:
                     </span>
                     <span className="font-semibold text-slate-900">
-                      {child.device?.deviceName || 'Not paired'}
+                      {device?.deviceName || (isPaired ? `${child.name}'s Device` : 'Not paired')}
                     </span>
                   </div>
 
-                  {child.device && (
+                  {isPaired && (
                     <div className="flex items-center justify-between text-slate-600">
                       <span className="flex items-center gap-1.5">
                         <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Platform & Battery:
                       </span>
                       <span className="font-semibold text-slate-900 uppercase">
-                        {child.device.platform} ({child.device.batteryLevel}%)
+                        {device?.platform || 'ANDROID'} ({device?.batteryLevel ?? 100}%)
                       </span>
                     </div>
                   )}

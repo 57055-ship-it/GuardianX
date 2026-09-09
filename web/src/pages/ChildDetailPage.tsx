@@ -8,6 +8,7 @@ import { analyticsApi } from '../api/analyticsApi';
 import { geofenceApi } from '../api/geofenceApi';
 import {
   ChildProfile,
+  ChildDevice,
   LocationRecord,
   AppUsageItem,
   SOSEvent,
@@ -109,9 +110,17 @@ export const ChildDetailPage: React.FC = () => {
     );
   }
 
+  const device: ChildDevice | null =
+    child.device ||
+    (typeof child.deviceId === 'object' && child.deviceId
+      ? (child.deviceId as unknown as ChildDevice)
+      : null);
+
   const mapCenter: [number, number] = latestLocation
     ? [latestLocation.latitude, latestLocation.longitude]
     : [33.6844, 73.0479];
+
+  const isDevicePaired = child.profileStatus === 'paired' || !!device;
 
   return (
     <div className="space-y-6 pb-12">
@@ -132,16 +141,16 @@ export const ChildDetailPage: React.FC = () => {
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold text-slate-900">{child.name}</h1>
-              <Badge variant={child.profileStatus === 'paired' ? 'success' : 'warning'}>
-                {child.profileStatus === 'paired' ? 'Paired' : 'Unpaired'}
+              <Badge variant={isDevicePaired ? 'success' : 'warning'}>
+                {isDevicePaired ? 'Paired' : 'Unpaired'}
               </Badge>
             </div>
             <div className="text-xs text-slate-600 mt-1 flex flex-wrap items-center gap-4">
-              <span>Device: {child.device?.deviceName || 'None'}</span>
-              {child.device && (
+              <span>Device: {device?.deviceName || (isDevicePaired ? `${child.name}'s Device` : 'None')}</span>
+              {device && (
                 <>
-                  <span>Platform: {child.device.platform.toUpperCase()}</span>
-                  <span>Battery: {child.device.batteryLevel}%</span>
+                  <span>Platform: {(device.platform || 'Android').toUpperCase()}</span>
+                  <span>Battery: {device.batteryLevel ?? 100}%</span>
                 </>
               )}
             </div>
@@ -198,23 +207,29 @@ export const ChildDetailPage: React.FC = () => {
             <div className="space-y-3 text-xs">
               <div className="flex justify-between py-2 border-b border-slate-200">
                 <span className="text-slate-600">Device Model:</span>
-                <span className="font-semibold text-slate-900">{child.device?.deviceName || 'N/A'}</span>
+                <span className="font-semibold text-slate-900">
+                  {device?.deviceName || (isDevicePaired ? `${child.name}'s Device` : 'N/A')}
+                </span>
               </div>
               <div className="flex justify-between py-2 border-b border-slate-200">
                 <span className="text-slate-600">Battery Level:</span>
-                <span className="font-semibold text-slate-900">{child.device?.batteryLevel ?? 'N/A'}%</span>
+                <span className="font-semibold text-slate-900">
+                  {device?.batteryLevel !== undefined ? `${device.batteryLevel}%` : (isDevicePaired ? '100%' : 'N/A%')}
+                </span>
               </div>
               <div className="flex justify-between py-2 border-b border-slate-200">
                 <span className="text-slate-600">Online Status:</span>
-                <Badge variant={child.device?.isOnline ? 'success' : 'neutral'} size="sm">
-                  {child.device?.isOnline ? 'Online' : 'Offline'}
+                <Badge variant={device?.isOnline || (isDevicePaired && !!latestLocation) ? 'success' : 'neutral'} size="sm">
+                  {device?.isOnline || (isDevicePaired && !!latestLocation) ? 'Online' : 'Offline'}
                 </Badge>
               </div>
               <div className="flex justify-between py-2">
                 <span className="text-slate-600">Last Telemetry:</span>
                 <span className="font-semibold text-slate-900">
-                  {child.device?.lastSeen
-                    ? new Date(child.device.lastSeen).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                  {device?.lastSeen
+                    ? new Date(device.lastSeen).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    : latestLocation
+                    ? new Date(latestLocation.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                     : 'N/A'}
                 </span>
               </div>
