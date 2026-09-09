@@ -1,51 +1,98 @@
 const LocationRecord = require('../models/LocationRecord');
 const Geofence = require('../models/Geofence');
 const Alert = require('../models/Alert');
+const ChildProfile = require('../models/ChildProfile');
 const { getDistanceInMeters } = require('../utils/geoUtils');
 
-// POST /api/location (Record new location update)
+// STALE_THRESHOLD: 5 minutes in milliseconds
+const STALE_THRESHOLD_MS = 5 * 60 * 1000;
+
+// POST /api/location (Record real GPS location update)
 exports.recordLocation = async (req, res) => {
   try {
-    const { childId, latitude, longitude, accuracy } = req.body;
-    const targetChildId = childId || req.user.childId;
+    const { childId, latitude, longitude, accuracy, speed, altitude, heading, timestamp } = req.body;
 
-    if (!targetChildId || latitude === undefined || longitude === undefined) {
+    // Security & Authorization Scoping
+    let targetChildId = childId;
+    if (req.user.role === 'child') {
+      targetChildId = req.user.childId || req.user.id;
+    }
+
+    if (!targetChildId) {
       return res.status(400).json({
         success: false,
-        message: 'childId, latitude, and longitude are required.'
+        message: 'childId is required.'
       });
     }
 
+    // Strict GPS Coordinates Validation
+    const latNum = Number(latitude);
+    const lngNum = Number(longitude);
+    const accNum = Number(accuracy ?? 0);
+
+    if (
+      latitude === undefined ||
+      longitude === undefined ||
+      isNaN(latNum) ||
+      isNaN(lngNum) ||
+      latNum < -90 ||
+      latNum > 90 ||
+      lngNum < -180 ||
+      lngNum > 180 ||
+      accNum < 0
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid GPS coordinates or accuracy value.'
+      });
+    }
+
+    // Verify targetChildId belongs to tenant
+    const childProfile = await ChildProfile.findOne({
+      _id: targetChildId,
+      tenantId: req.tenantId
+    });
+
+    if (!childProfile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Associated child profile not found.'
+      });
+    }
+
+    const recordTimestamp = timestamp ? new Date(timestamp) : new Date();
+
     const record = await LocationRecord.create({
       tenantId: req.tenantId,
-      childId: targetChildId,
-      latitude,
-      longitude,
-      accuracy: accuracy || 0,
-      timestamp: new Date()
+      childId: childProfile._id,
+      latitude: latNum,
+      longitude: lngNum,
+      accuracy: accNum,
+      speed: Number(speed ?? 0),
+      altitude: Number(altitude ?? 0),
+      heading: Number(heading ?? 0),
+      timestamp: recordTimestamp
     });
 
     // Evaluate active geofences for this child
     const geofences = await Geofence.find({
       tenantId: req.tenantId,
-      childId: targetChildId,
       isActive: true
     });
 
     for (const geofence of geofences) {
       const distance = getDistanceInMeters(
-        latitude,
-        longitude,
+        latNum,
+        lngNum,
         geofence.latitude,
         geofence.longitude
       );
 
       const isInside = distance <= geofence.radius;
 
-      // Check last recent geofence alert to avoid spam
       const lastAlert = await Alert.findOne({
         tenantId: req.tenantId,
-        childId: targetChildId,
+        childId: childProfile._id,
         type: { $in: ['geofence_entered', 'geofence_exited'] },
         title: { $regex: geofence.name, $options: 'i' }
       }).sort({ createdAt: -1 });
@@ -53,19 +100,19 @@ exports.recordLocation = async (req, res) => {
       if (isInside && (!lastAlert || lastAlert.type === 'geofence_exited')) {
         await Alert.create({
           tenantId: req.tenantId,
-          childId: targetChildId,
+          childId: childProfile._id,
           type: 'geofence_entered',
           title: `Entered Safe Zone: ${geofence.name}`,
-          message: `Child entered safe zone "${geofence.name}".`,
+          message: `${childProfile.name} entered safe zone "${geofence.name}".`,
           severity: 'info'
         });
       } else if (!isInside && lastAlert && lastAlert.type === 'geofence_entered') {
         await Alert.create({
           tenantId: req.tenantId,
-          childId: targetChildId,
+          childId: childProfile._id,
           type: 'geofence_exited',
           title: `Exited Safe Zone: ${geofence.name}`,
-          message: `Child left safe zone "${geofence.name}".`,
+          message: `${childProfile.name} left safe zone "${geofence.name}".`,
           severity: 'high'
         });
       }
@@ -73,7 +120,7 @@ exports.recordLocation = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: 'Location recorded successfully.',
+      message: 'Real location recorded successfully.',
       location: record
     });
   } catch (error) {
@@ -90,9 +137,22 @@ exports.getLatestLocation = async (req, res) => {
   try {
     const { childId } = req.params;
 
+    // Verify child belongs to authenticated tenant
+    const childProfile = await ChildProfile.findOne({
+      _id: childId,
+      tenantId: req.tenantId
+    });
+
+    if (!childProfile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Child profile not found or unauthorized.'
+      });
+    }
+
     const location = await LocationRecord.findOne({
       tenantId: req.tenantId,
-      childId
+      childId: childProfile._id
     }).sort({ timestamp: -1 });
 
     if (!location) {
@@ -102,9 +162,14 @@ exports.getLatestLocation = async (req, res) => {
       });
     }
 
+    const ageMs = Date.now() - new Date(location.timestamp).getTime();
+    const isStale = ageMs > STALE_THRESHOLD_MS;
+
     return res.status(200).json({
       success: true,
-      location
+      location,
+      isStale,
+      ageSeconds: Math.floor(ageMs / 1000)
     });
   } catch (error) {
     return res.status(500).json({
@@ -119,11 +184,24 @@ exports.getLatestLocation = async (req, res) => {
 exports.getLocationHistory = async (req, res) => {
   try {
     const { childId } = req.params;
-    const limit = parseInt(req.query.limit, 10) || 50;
+    const limit = Math.min(parseInt(req.query.limit, 10) || 50, 200);
+
+    // Verify child belongs to authenticated tenant
+    const childProfile = await ChildProfile.findOne({
+      _id: childId,
+      tenantId: req.tenantId
+    });
+
+    if (!childProfile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Child profile not found or unauthorized.'
+      });
+    }
 
     const history = await LocationRecord.find({
       tenantId: req.tenantId,
-      childId
+      childId: childProfile._id
     })
       .sort({ timestamp: -1 })
       .limit(limit);

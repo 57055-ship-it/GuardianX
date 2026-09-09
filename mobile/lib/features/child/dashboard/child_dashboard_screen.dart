@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/services/location_service.dart';
 import '../../../core/utils/date_formatter.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../providers/location_provider.dart';
 import '../../../providers/routine_provider.dart';
 import '../../../providers/usage_provider.dart';
 import '../../shared/widgets/status_badge.dart';
@@ -41,15 +43,17 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
     final authProvider = Provider.of<AuthProvider>(context);
     final routineProvider = Provider.of<RoutineProvider>(context);
     final usageProvider = Provider.of<UsageProvider>(context);
+    final locationProvider = Provider.of<LocationProvider>(context);
 
     final childName = authProvider.currentUser?.name ?? 'Child';
+    final currentPos = locationProvider.currentChildPosition;
 
     return Scaffold(
       appBar: AppBar(
-        title: Row(
+        title: const Row(
           children: [
-            const Icon(Icons.shield, color: AppColors.secondary, size: 26),
-            const SizedBox(width: 8),
+            Icon(Icons.shield, color: AppColors.secondary, size: 26),
+            SizedBox(width: 8),
             Text('GUARDIANX', style: TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
@@ -102,7 +106,87 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
+
+              // REAL GPS LOCATION SENSOR STATUS CARD
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Row(
+                            children: [
+                              Icon(Icons.my_location, color: AppColors.primary, size: 22),
+                              SizedBox(width: 8),
+                              Text(
+                                'GPS Location Sensor',
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                          StatusBadge(
+                            label: locationProvider.permissionState == LocationPermissionState.granted
+                                ? 'GPS Active'
+                                : locationProvider.permissionState == LocationPermissionState.gpsDisabled
+                                    ? 'GPS Disabled'
+                                    : 'Permission Required',
+                            isSuccess: locationProvider.permissionState == LocationPermissionState.granted,
+                          ),
+                        ],
+                      ),
+                      const Divider(height: 20),
+                      if (currentPos != null && currentPos.hasRealSignal) ...[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Lat: ${currentPos.latitude.toStringAsFixed(4)}, Lng: ${currentPos.longitude.toStringAsFixed(4)}',
+                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                            ),
+                            Text(
+                              'Accuracy ±${currentPos.accuracy.toStringAsFixed(1)} m',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: currentPos.accuracy > 50 ? Colors.orange : Colors.grey,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Last Synced: ${DateFormatter.formatTime(currentPos.timestamp)}',
+                          style: const TextStyle(fontSize: 11, color: Colors.grey),
+                        ),
+                      ] else ...[
+                        Text(
+                          locationProvider.permissionState == LocationPermissionState.granted
+                              ? 'Acquiring high-accuracy satellite GPS fix...'
+                              : 'Location permissions or GPS hardware service disabled.',
+                          style: const TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
+                        if (locationProvider.permissionState != LocationPermissionState.granted) ...[
+                          const SizedBox(height: 10),
+                          OutlinedButton.icon(
+                            onPressed: () {
+                              locationProvider.startChildLocationTracking(
+                                childId: authProvider.currentUser?.id,
+                              );
+                            },
+                            icon: const Icon(Icons.security, size: 16),
+                            label: const Text('Enable Real GPS Permission'),
+                          ),
+                        ],
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
 
               // Prominent Emergency SOS Trigger Button
               Card(

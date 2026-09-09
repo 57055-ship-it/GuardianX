@@ -26,6 +26,18 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>GuardianX requires location permission to share your child's real-time safety position with parents.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>GuardianX requires background location permission to monitor safe zones and send emergency SOS alerts.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>GuardianX requires background location tracking for child emergency distress responses.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

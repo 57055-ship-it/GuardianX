@@ -3,9 +3,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 
 class ApiConstants {
   static String get defaultHost {
-    if (kIsWeb) return 'http://localhost:5050/api';
-    if (Platform.isAndroid) return 'http://10.0.2.2:5050/api'; // Android Emulator alias to host localhost
-    return 'http://localhost:5050/api'; // iOS Simulator & macOS
+    return 'https://guardianx-bd1f.onrender.com/api';
   }
 
   static String customHostOverride = '';

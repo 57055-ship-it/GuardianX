@@ -142,24 +142,49 @@ describe('GuardianX Backend API Integration Tests', () => {
     expect(res.body.success).toBe(false);
   });
 
-  test('9. Record Child Location and Check Latest Location', async () => {
+  test('9. Record Child Location and Check Latest Location & Security Rules', async () => {
+    // 9a. Submit valid location
     const locRes = await request(app)
       .post('/api/location')
       .set('Authorization', `Bearer ${childTokenFamilyA}`)
       .send({
-        latitude: 37.7749,
-        longitude: -122.4194,
-        accuracy: 5.0
+        latitude: 31.5204,
+        longitude: 74.3587,
+        accuracy: 8.5
       });
 
     expect(locRes.statusCode).toEqual(201);
+    expect(locRes.body.location.latitude).toEqual(31.5204);
+    expect(locRes.body.location.accuracy).toEqual(8.5);
 
+    // 9b. Reject invalid latitude (> 90)
+    const invalidLat = await request(app)
+      .post('/api/location')
+      .set('Authorization', `Bearer ${childTokenFamilyA}`)
+      .send({ latitude: 120.0, longitude: 74.0, accuracy: 5 });
+    expect(invalidLat.statusCode).toEqual(400);
+
+    // 9c. Reject invalid longitude (< -180)
+    const invalidLng = await request(app)
+      .post('/api/location')
+      .set('Authorization', `Bearer ${childTokenFamilyA}`)
+      .send({ latitude: 30.0, longitude: -200.0, accuracy: 5 });
+    expect(invalidLng.statusCode).toEqual(400);
+
+    // 9d. Fetch latest location as authorized Parent Family A
     const getRes = await request(app)
       .get(`/api/location/${childIdFamilyA}/latest`)
       .set('Authorization', `Bearer ${parentTokenFamilyA}`);
 
     expect(getRes.statusCode).toEqual(200);
-    expect(getRes.body.location.latitude).toEqual(37.7749);
+    expect(getRes.body.location.latitude).toEqual(31.5204);
+    expect(getRes.body.isStale).toBe(false);
+
+    // 9e. Multi-tenant isolation: Parent Family B CANNOT view Family A Child location
+    const unauthorizedGet = await request(app)
+      .get(`/api/location/${childIdFamilyA}/latest`)
+      .set('Authorization', `Bearer ${parentTokenFamilyB}`);
+    expect(unauthorizedGet.statusCode).toEqual(404);
   });
 
   test('10. Child Triggers Emergency SOS', async () => {
@@ -167,8 +192,8 @@ describe('GuardianX Backend API Integration Tests', () => {
       .post('/api/sos')
       .set('Authorization', `Bearer ${childTokenFamilyA}`)
       .send({
-        latitude: 37.7749,
-        longitude: -122.4194
+        latitude: 31.5204,
+        longitude: 74.3587
       });
 
     expect(res.statusCode).toEqual(201);

@@ -70,8 +70,13 @@ class NotificationService {
       colorized: true,
       color: Color(0xFFD32F2F),
     );
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
 
-    const notificationDetails = NotificationDetails(android: androidDetails);
+    const notificationDetails = NotificationDetails(android: androidDetails, iOS: iosDetails);
     await _notificationsPlugin.show(
       1001,
       '🚨 EMERGENCY SOS TRIGGERED!',
@@ -95,8 +100,13 @@ class NotificationService {
       priority: Priority.high,
       color: isExit ? const Color(0xFFE65100) : const Color(0xFF2E7D32),
     );
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
 
-    final notificationDetails = NotificationDetails(android: androidDetails);
+    final notificationDetails = NotificationDetails(android: androidDetails, iOS: iosDetails);
     await _notificationsPlugin.show(
       2001,
       title,
@@ -115,8 +125,13 @@ class NotificationService {
       importance: Importance.defaultImportance,
       priority: Priority.defaultPriority,
     );
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
 
-    const notificationDetails = NotificationDetails(android: androidDetails);
+    const notificationDetails = NotificationDetails(android: androidDetails, iOS: iosDetails);
     await _notificationsPlugin.show(
       3001,
       title,

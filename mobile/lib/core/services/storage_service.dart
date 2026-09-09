@@ -8,6 +8,7 @@ class StorageService {
   static const String _userNameKey = 'user_name';
   static const String _tenantIdKey = 'tenant_id';
   static const String _childIdKey = 'child_id';
+  static const String _deviceIdentifierKey = 'device_identifier';
 
   final SharedPreferences _prefs;
 
@@ -36,6 +37,15 @@ class StorageService {
     if (childId != null) {
       await _prefs.setString(_childIdKey, childId);
     }
+  }
+
+  String get deviceIdentifier {
+    var id = _prefs.getString(_deviceIdentifierKey);
+    if (id == null || id.isEmpty) {
+      id = 'dev_${DateTime.now().millisecondsSinceEpoch}_${(DateTime.now().microsecond % 10000)}';
+      _prefs.setString(_deviceIdentifierKey, id);
+    }
+    return id;
   }
 
   String? get token => _prefs.getString(_tokenKey);

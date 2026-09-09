@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/location_provider.dart';
 import 'dashboard/child_dashboard_screen.dart';
 import 'activity/child_activity_screen.dart';
 import 'routines/child_routines_screen.dart';
@@ -23,6 +26,20 @@ class _ChildShellState extends State<ChildShell> {
     ChildSOSScreen(),
     ChildSettingsScreen(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _startTracking();
+    });
+  }
+
+  void _startTracking() {
+    final authProv = Provider.of<AuthProvider>(context, listen: false);
+    final childId = authProv.currentUser?.id;
+    Provider.of<LocationProvider>(context, listen: false).startChildLocationTracking(childId: childId);
+  }
 
   @override
   Widget build(BuildContext context) {

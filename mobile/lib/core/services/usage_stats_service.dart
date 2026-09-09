@@ -25,8 +25,12 @@ class AppUsageData {
 }
 
 class UsageStatsService {
+  /// Platform capability check for Android UsageStatsManager
+  static bool get isPlatformSupported => !kIsWeb && Platform.isAndroid;
+
   /// Open Android System Settings to grant PACKAGE_USAGE_STATS permission
   Future<bool> openUsageSettings() async {
+    if (!isPlatformSupported) return false;
     try {
       return await openAppSettings();
     } catch (e) {
@@ -35,10 +39,10 @@ class UsageStatsService {
     }
   }
 
-  /// Check if Android UsageStats permission is available
+  /// Check if Android UsageStats permission is granted
   Future<bool> hasUsagePermission() async {
-    if (kIsWeb || !Platform.isAndroid) {
-      return true;
+    if (!isPlatformSupported) {
+      return false;
     }
     try {
       final now = DateTime.now();
@@ -53,7 +57,7 @@ class UsageStatsService {
 
   /// Query real Android UsageStatsManager data for today's application usage
   Future<List<AppUsageData>> getTodayUsageStats() async {
-    if (!kIsWeb && Platform.isAndroid) {
+    if (isPlatformSupported) {
       try {
         final now = DateTime.now();
         final startDate = DateTime(now.year, now.month, now.day);
@@ -74,36 +78,11 @@ class UsageStatsService {
           return realList;
         }
       } catch (e) {
-        debugPrint('[UsageStatsService] Native AppUsage fetch error (returning fallback): $e');
+        debugPrint('[UsageStatsService] Native AppUsage fetch error: $e');
       }
     }
 
-    // Baseline privacy-preserving metadata fallback for desktop or ungranted permission
-    return [
-      AppUsageData(
-        packageName: 'com.google.android.youtube',
-        appName: 'YouTube',
-        usageDurationMinutes: 92,
-        sessionCount: 4,
-      ),
-      AppUsageData(
-        packageName: 'com.android.chrome',
-        appName: 'Chrome Browser',
-        usageDurationMinutes: 45,
-        sessionCount: 8,
-      ),
-      AppUsageData(
-        packageName: 'com.duolingo',
-        appName: 'Duolingo',
-        usageDurationMinutes: 30,
-        sessionCount: 2,
-      ),
-      AppUsageData(
-        packageName: 'com.whatsapp',
-        appName: 'WhatsApp',
-        usageDurationMinutes: 25,
-        sessionCount: 12,
-      ),
-    ];
+    // On iOS or when no usage is logged, return empty list (no fake data)
+    return [];
   }
 }

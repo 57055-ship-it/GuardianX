@@ -57,7 +57,7 @@ class _ParentScreenTimeScreenState extends State<ParentScreenTimeScreen> {
                           ),
                           const SizedBox(height: 8),
                           const Text(
-                            'Allowed usage metadata collected via Android UsageStats API.',
+                            'Digital wellbeing metadata collected from paired child devices.',
                             style: TextStyle(fontSize: 11, color: Colors.grey),
                             textAlign: TextAlign.center,
                           ),
@@ -75,7 +75,11 @@ class _ParentScreenTimeScreenState extends State<ParentScreenTimeScreen> {
                     const Card(
                       child: Padding(
                         padding: EdgeInsets.all(16.0),
-                        child: Text('No application usage data logged for today.'),
+                        child: Text(
+                          'No application usage data logged for today.\n\nNote: Detailed per-app usage breakdowns are supported on Android child devices. iOS child devices restrict individual app usage monitoring due to Apple platform privacy policies.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
                       ),
                     )
                   else

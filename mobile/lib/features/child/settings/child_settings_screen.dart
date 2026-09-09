@@ -79,47 +79,53 @@ class ChildSettingsScreen extends StatelessWidget {
               ),
             ),
           ),
-          // Android System Permissions & Access Shortcuts
+          // Platform Permissions & Access Card
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Row(
+                  Row(
                     children: [
-                      Icon(Icons.security, color: AppColors.secondary),
-                      SizedBox(width: 8),
+                      const Icon(Icons.security, color: AppColors.secondary),
+                      const SizedBox(width: 8),
                       Text(
-                        'Android Permissions & Access',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                        UsageStatsService.isPlatformSupported
+                            ? 'Android Permissions & Access'
+                            : 'Platform Permissions & Privacy',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'To enable accurate screen time tracking and safe zone alerts, grant Location and App Usage permissions in Android System Settings.',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  Text(
+                    UsageStatsService.isPlatformSupported
+                        ? 'To enable accurate screen time tracking and safe zone alerts, grant Location and App Usage permissions in System Settings.'
+                        : 'GuardianX monitors real-time location, safe zone geofences, and SOS distress alerts on iOS devices.',
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
                   ),
-                  const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    onPressed: () async {
-                      final service = UsageStatsService();
-                      final success = await service.openUsageSettings();
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(success
-                                ? 'Opening Android System Usage Access settings...'
-                                : 'Could not open settings automatically.'
+                  if (UsageStatsService.isPlatformSupported) ...[
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      onPressed: () async {
+                        final service = UsageStatsService();
+                        final success = await service.openUsageSettings();
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(success
+                                  ? 'Opening System Usage Access settings...'
+                                  : 'Could not open settings automatically.'
+                              ),
                             ),
-                          ),
-                        );
-                      }
-                    },
-                    icon: const Icon(Icons.settings_applications),
-                    label: const Text('Grant App Usage Access in Android Settings'),
-                  ),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.settings_applications),
+                      label: const Text('Grant App Usage Access in Settings'),
+                    ),
+                  ],
                 ],
               ),
             ),

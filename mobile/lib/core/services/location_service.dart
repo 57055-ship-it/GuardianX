@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 
@@ -12,17 +13,23 @@ class LocationResult {
   final double latitude;
   final double longitude;
   final double accuracy;
+  final double speed;
+  final double altitude;
+  final double heading;
   final DateTime timestamp;
   final LocationPermissionState state;
-  final bool isMockFallback;
+  final bool hasRealSignal;
 
   LocationResult({
     required this.latitude,
     required this.longitude,
     required this.accuracy,
+    this.speed = 0.0,
+    this.altitude = 0.0,
+    this.heading = 0.0,
     required this.timestamp,
     required this.state,
-    this.isMockFallback = false,
+    required this.hasRealSignal,
   });
 }
 
@@ -74,7 +81,7 @@ class LocationService {
     }
   }
 
-  /// Collect real GPS location update from device sensor
+  /// Collect real GPS location update from device hardware sensors (NO MOCK DATA)
   Future<LocationResult> getCurrentLocation() async {
     final state = await checkPermissions();
 
@@ -91,9 +98,12 @@ class LocationService {
           latitude: position.latitude,
           longitude: position.longitude,
           accuracy: position.accuracy,
+          speed: position.speed,
+          altitude: position.altitude,
+          heading: position.heading,
           timestamp: position.timestamp,
           state: LocationPermissionState.granted,
-          isMockFallback: false,
+          hasRealSignal: true,
         );
       } catch (e) {
         debugPrint('[LocationService] Geolocator sensor fetch failed, trying last known position: $e');
@@ -104,23 +114,68 @@ class LocationService {
               latitude: lastPosition.latitude,
               longitude: lastPosition.longitude,
               accuracy: lastPosition.accuracy,
+              speed: lastPosition.speed,
+              altitude: lastPosition.altitude,
+              heading: lastPosition.heading,
               timestamp: lastPosition.timestamp,
               state: LocationPermissionState.granted,
-              isMockFallback: false,
+              hasRealSignal: true,
             );
           }
         } catch (_) {}
       }
     }
 
-    // Fallback location for desktop/testing environments where GPS hardware is unavailable
+    // Explicit non-mock return when GPS signal/permission is unavailable
     return LocationResult(
-      latitude: 31.5204,
-      longitude: 74.3587,
-      accuracy: 5.0,
+      latitude: 0.0,
+      longitude: 0.0,
+      accuracy: 0.0,
       timestamp: DateTime.now(),
       state: state,
-      isMockFallback: true,
+      hasRealSignal: false,
     );
+  }
+
+  /// Stream continuous real GPS position updates from sensor
+  Stream<LocationResult> getPositionStream({
+    int distanceFilterMeters = 10,
+    int timeIntervalSeconds = 15,
+  }) {
+    late LocationSettings settings;
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      settings = AndroidSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: distanceFilterMeters,
+        intervalDuration: Duration(seconds: timeIntervalSeconds),
+        forceLocationManager: false,
+      );
+    } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+      settings = AppleSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: distanceFilterMeters,
+        pauseLocationUpdatesAutomatically: true,
+        showBackgroundLocationIndicator: true,
+      );
+    } else {
+      settings = LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: distanceFilterMeters,
+      );
+    }
+
+    return Geolocator.getPositionStream(locationSettings: settings).map((position) {
+      return LocationResult(
+        latitude: position.latitude,
+        longitude: position.longitude,
+        accuracy: position.accuracy,
+        speed: position.speed,
+        altitude: position.altitude,
+        heading: position.heading,
+        timestamp: position.timestamp,
+        state: LocationPermissionState.granted,
+        hasRealSignal: true,
+      );
+    });
   }
 }

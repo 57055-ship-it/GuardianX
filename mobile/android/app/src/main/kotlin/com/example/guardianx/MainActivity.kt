@@ -1,4 +1,4 @@
-package com.example.guardianx
+package com.guardianx.app
 
 import io.flutter.embedding.android.FlutterActivity
 

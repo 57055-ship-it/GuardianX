@@ -10,7 +10,10 @@ class LocationRepository {
   Future<void> recordLocation({
     required double latitude,
     required double longitude,
-    double accuracy = 5.0,
+    double accuracy = 0.0,
+    double speed = 0.0,
+    double altitude = 0.0,
+    double heading = 0.0,
     String? childId,
   }) async {
     await _apiClient.post(
@@ -20,6 +23,10 @@ class LocationRepository {
         'latitude': latitude,
         'longitude': longitude,
         'accuracy': accuracy,
+        'speed': speed,
+        'altitude': altitude,
+        'heading': heading,
+        'timestamp': DateTime.now().toIso8601String(),
       },
     );
   }
@@ -33,9 +40,9 @@ class LocationRepository {
     }
   }
 
-  Future<List<LocationModel>> getLocationHistory(String childId) async {
+  Future<List<LocationModel>> getLocationHistory(String childId, {int limit = 50}) async {
     try {
-      final response = await _apiClient.get('${ApiConstants.location}/$childId/history');
+      final response = await _apiClient.get('${ApiConstants.location}/$childId/history?limit=$limit');
       final List list = response['history'] ?? [];
       return list.map((json) => LocationModel.fromJson(json)).toList();
     } catch (_) {

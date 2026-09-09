@@ -1,6 +1,9 @@
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/services/storage_service.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/pairing_provider.dart';
 import '../../shared/widgets/custom_button.dart';
@@ -24,12 +27,17 @@ class _ChildPairingScreenState extends State<ChildPairingScreen> {
 
     final pairingProvider = Provider.of<PairingProvider>(context, listen: false);
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final storageService = Provider.of<StorageService>(context, listen: false);
+
+    final platformStr = kIsWeb
+        ? 'web'
+        : (Platform.isAndroid ? 'android' : (Platform.isIOS ? 'ios' : 'mobile'));
 
     final result = await pairingProvider.joinCode(
-      code: _codeController.text.trim(),
+      code: _codeController.text.trim().toUpperCase(),
       deviceName: _deviceNameController.text.trim(),
-      deviceIdentifier: 'android_dev_${DateTime.now().millisecondsSinceEpoch}',
-      platform: 'android',
+      deviceIdentifier: storageService.deviceIdentifier,
+      platform: platformStr,
     );
 
     if (result != null && mounted) {

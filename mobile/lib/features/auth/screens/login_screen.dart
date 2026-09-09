@@ -6,7 +6,6 @@ import '../../shared/widgets/custom_button.dart';
 import '../../shared/widgets/custom_text_field.dart';
 import '../../parent/parent_shell.dart';
 import '../../child/child_shell.dart';
-import '../../pairing/screens/child_pairing_screen.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -126,15 +125,17 @@ class _LoginScreenState extends State<LoginScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text("Don't have a family account? "),
+                    const Text("Need an account? "),
                     GestureDetector(
                       onTap: () {
                         Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                          MaterialPageRoute(
+                            builder: (_) => const RegisterScreen(initialRole: 'parent'),
+                          ),
                         );
                       },
                       child: const Text(
-                        'Register Parent',
+                        'Create Family Account',
                         style: TextStyle(
                           color: AppColors.primary,
                           fontWeight: FontWeight.bold,
@@ -143,7 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 28),
                 const Divider(),
                 const SizedBox(height: 16),
                 OutlinedButton.icon(
@@ -155,12 +156,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   onPressed: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const ChildPairingScreen()),
+                      MaterialPageRoute(
+                        builder: (_) => const RegisterScreen(initialRole: 'child'),
+                      ),
                     );
                   },
                   icon: const Icon(Icons.qr_code_scanner, color: AppColors.secondary),
                   label: const Text(
-                    'Pair Child Device with Code',
+                    'Join Family as Child with Pairing Code',
                     style: TextStyle(color: AppColors.secondary, fontWeight: FontWeight.bold),
                   ),
                 ),
