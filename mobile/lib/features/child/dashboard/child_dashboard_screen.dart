@@ -1,6 +1,11 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:battery_plus/battery_plus.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/services/api_client.dart';
+import '../../../core/services/device_service.dart';
 import '../../../core/services/location_service.dart';
 import '../../../core/utils/date_formatter.dart';
 import '../../../providers/auth_provider.dart';
@@ -19,12 +24,58 @@ class ChildDashboardScreen extends StatefulWidget {
 }
 
 class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
+  int _batteryLevel = 100;
+  bool _isCharging = false;
+  StreamSubscription<BatteryState>? _batterySubscription;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadChildData();
+      _fetchRealBatteryStatus();
+      _listenToBatteryChanges();
     });
+  }
+
+  @override
+  void dispose() {
+    _batterySubscription?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _fetchRealBatteryStatus() async {
+    try {
+      if (!mounted) return;
+      final apiClient = Provider.of<ApiClient>(context, listen: false);
+      final deviceService = DeviceService(apiClient);
+      final status = await deviceService.getDeviceStatus();
+      if (mounted) {
+        setState(() {
+          _batteryLevel = status.batteryLevel;
+          _isCharging = status.isCharging;
+        });
+      }
+      if (!mounted) return;
+      final authProv = Provider.of<AuthProvider>(context, listen: false);
+      if (authProv.currentUser?.id != null) {
+        await deviceService.sendHeartbeat(childId: authProv.currentUser!.id);
+      }
+    } catch (e) {
+      debugPrint('[ChildDashboard] Battery fetch error: $e');
+    }
+  }
+
+  void _listenToBatteryChanges() {
+    if (!kIsWeb) {
+      try {
+        _batterySubscription = Battery().onBatteryStateChanged.listen((_) {
+          _fetchRealBatteryStatus();
+        });
+      } catch (e) {
+        debugPrint('[ChildDashboard] Battery stream error: $e');
+      }
+    }
   }
 
   void _loadChildData() {
@@ -36,6 +87,7 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
     if (childId != null) {
       Provider.of<UsageProvider>(context, listen: false).fetchChildUsage(childId);
     }
+    _fetchRealBatteryStatus();
   }
 
   @override
@@ -51,8 +103,9 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.shield, color: AppColors.secondary, size: 26),
+            Icon(Icons.shield, color: AppColors.secondary, size: 24),
             SizedBox(width: 8),
             Text('GUARDIANX', style: TextStyle(fontWeight: FontWeight.bold)),
           ],
@@ -77,7 +130,7 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
                         radius: 26,
                         backgroundColor: AppColors.secondary,
                         child: Text(
-                          childName[0].toUpperCase(),
+                          childName.isNotEmpty ? childName[0].toUpperCase() : 'C',
                           style: const TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
@@ -92,6 +145,8 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
                           children: [
                             Text(
                               'Hello, $childName!',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 4),
@@ -118,34 +173,42 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Row(
-                            children: [
-                              Icon(Icons.my_location, color: AppColors.primary, size: 22),
-                              SizedBox(width: 8),
-                              Text(
-                                'GPS Location Sensor',
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                              ),
-                            ],
+                          const Expanded(
+                            child: Row(
+                              children: [
+                                Icon(Icons.my_location, color: AppColors.primary, size: 22),
+                                SizedBox(width: 8),
+                                Flexible(
+                                  child: Text(
+                                    'GPS Location Sensor',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                           StatusBadge(
                             label: locationProvider.permissionState == LocationPermissionState.granted
                                 ? 'GPS Active'
                                 : locationProvider.permissionState == LocationPermissionState.gpsDisabled
                                     ? 'GPS Disabled'
-                                    : 'Permission Required',
+                                    : 'Permission Needed',
                             isSuccess: locationProvider.permissionState == LocationPermissionState.granted,
                           ),
                         ],
                       ),
                       const Divider(height: 20),
                       if (currentPos != null && currentPos.hasRealSignal) ...[
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        Wrap(
+                          alignment: WrapAlignment.spaceBetween,
+                          runSpacing: 4,
+                          crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
                             Text(
                               'Lat: ${currentPos.latitude.toStringAsFixed(4)}, Lng: ${currentPos.longitude.toStringAsFixed(4)}',
-                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
                             ),
                             Text(
                               'Accuracy ±${currentPos.accuracy.toStringAsFixed(1)} m',
@@ -203,9 +266,8 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
                   },
                   borderRadius: BorderRadius.circular(16),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                    padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Container(
                           padding: const EdgeInsets.all(10),
@@ -215,23 +277,27 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
                           ),
                           child: const Icon(Icons.sos, color: Colors.white, size: 28),
                         ),
-                        const SizedBox(width: 16),
-                        const Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'EMERGENCY SOS',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.critical,
+                        const SizedBox(width: 14),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'EMERGENCY SOS',
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.critical,
+                                ),
                               ),
-                            ),
-                            Text(
-                              'Tap to alert your parents immediately',
-                              style: TextStyle(fontSize: 12, color: Colors.grey),
-                            ),
-                          ],
+                              Text(
+                                'Tap to alert your parents immediately',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(fontSize: 12, color: Colors.grey),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -246,39 +312,63 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
                   Expanded(
                     child: Card(
                       child: Padding(
-                        padding: const EdgeInsets.all(16.0),
+                        padding: const EdgeInsets.all(14.0),
                         child: Column(
                           children: [
                             const Icon(Icons.screen_search_desktop_outlined,
-                                color: AppColors.primary, size: 28),
+                                color: AppColors.primary, size: 26),
                             const SizedBox(height: 8),
-                            Text(
-                              DateFormatter.formatMinutesToDuration(
-                                  usageProvider.totalScreenTimeMinutes),
-                              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                DateFormatter.formatMinutesToDuration(
+                                    usageProvider.totalScreenTimeMinutes),
+                                style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
+                              ),
                             ),
-                            const Text('Today Screen Time',
-                                style: TextStyle(fontSize: 11, color: Colors.grey)),
+                            const SizedBox(height: 2),
+                            const FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text('Today Screen Time',
+                                  style: TextStyle(fontSize: 11, color: Colors.grey)),
+                            ),
                           ],
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Card(
                       child: Padding(
-                        padding: const EdgeInsets.all(16.0),
+                        padding: const EdgeInsets.all(14.0),
                         child: Column(
                           children: [
-                            const Icon(Icons.battery_5_bar, color: AppColors.secondary, size: 28),
-                            const SizedBox(height: 8),
-                            const Text(
-                              '92%',
-                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                            Icon(
+                              _isCharging ? Icons.battery_charging_full : Icons.battery_5_bar,
+                              color: _isCharging ? AppColors.success : AppColors.secondary,
+                              size: 26,
                             ),
-                            const Text('Battery Level',
-                                style: TextStyle(fontSize: 11, color: Colors.grey)),
+                            const SizedBox(height: 8),
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                '$_batteryLevel%',
+                                style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                _isCharging ? 'Charging' : 'Battery Level',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: _isCharging ? AppColors.success : Colors.grey,
+                                  fontWeight: _isCharging ? FontWeight.bold : FontWeight.normal,
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -286,15 +376,19 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 22),
 
               // Today's Family Routines
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    "Today's Family Routines",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  const Flexible(
+                    child: Text(
+                      "Today's Family Routines",
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                    ),
                   ),
                   if (routineProvider.todayHadith != null)
                     TextButton.icon(
@@ -310,8 +404,8 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
                           ),
                         );
                       },
-                      icon: const Icon(Icons.play_circle_fill, color: AppColors.secondary),
-                      label: const Text('Start Hadith', style: TextStyle(color: AppColors.secondary)),
+                      icon: const Icon(Icons.play_circle_fill, color: AppColors.secondary, size: 18),
+                      label: const Text('Start Hadith', style: TextStyle(color: AppColors.secondary, fontSize: 12)),
                     ),
                 ],
               ),
@@ -346,7 +440,8 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
                             : ElevatedButton(
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.secondary,
-                                  minimumSize: const Size(80, 36),
+                                  minimumSize: const Size(70, 34),
+                                  padding: const EdgeInsets.symmetric(horizontal: 10),
                                 ),
                                 onPressed: () {
                                   routineProvider.completeRoutine(
@@ -354,7 +449,7 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
                                     childId: authProvider.currentUser?.id,
                                   );
                                 },
-                                child: const Text('Check In', style: TextStyle(fontSize: 12)),
+                                child: const Text('Check In', style: TextStyle(fontSize: 11)),
                               ),
                       ),
                     );

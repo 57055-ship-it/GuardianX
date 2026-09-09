@@ -75,12 +75,14 @@ class _ChildSOSScreenState extends State<ChildSOSScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Emergency SOS Signal')),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
               const Text(
                 'PANICTING OR IN DANGER?',
                 style: TextStyle(
@@ -155,6 +157,7 @@ class _ChildSOSScreenState extends State<ChildSOSScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

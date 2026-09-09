@@ -45,13 +45,16 @@ class _ChildActivityScreenState extends State<ChildActivityScreen> {
                         children: [
                           const Text('Today Screen Time', style: TextStyle(fontSize: 14)),
                           const SizedBox(height: 8),
-                          Text(
-                            DateFormatter.formatMinutesToDuration(
-                                usageProvider.totalScreenTimeMinutes),
-                            style: const TextStyle(
-                              fontSize: 36,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.secondary,
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              DateFormatter.formatMinutesToDuration(
+                                  usageProvider.totalScreenTimeMinutes),
+                              style: const TextStyle(
+                                fontSize: 34,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.secondary,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 8),
