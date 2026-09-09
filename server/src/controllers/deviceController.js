@@ -13,29 +13,29 @@ exports.updateHeartbeat = async (req, res) => {
 
     // Resolve ChildProfile whether targetId is ChildProfile._id or User._id
     let childProfile = await ChildProfile.findOne({
-      tenantId: req.tenantId,
-      $or: [{ _id: targetId }, { userId: targetId }]
+      $or: [
+        { _id: targetId },
+        { userId: targetId },
+        ...(req.user ? [{ userId: req.user.id }] : []),
+        ...(req.user && req.user.childId ? [{ _id: req.user.childId }] : [])
+      ]
     });
 
-    if (!childProfile && req.user) {
-      childProfile = await ChildProfile.findOne({
-        tenantId: req.tenantId,
-        userId: req.user.id
-      });
-    }
-
     const actualChildId = childProfile ? childProfile._id : targetId;
+    const actualTenantId = childProfile ? childProfile.tenantId : req.tenantId;
 
     let device = await Device.findOne({
-      tenantId: req.tenantId,
-      childId: actualChildId
+      $or: [
+        { childId: actualChildId },
+        ...(req.body.deviceIdentifier ? [{ deviceIdentifier: req.body.deviceIdentifier }] : [])
+      ]
     });
 
     if (!device) {
       device = new Device({
-        tenantId: req.tenantId,
+        tenantId: actualTenantId,
         childId: actualChildId,
-        deviceIdentifier: `dev_${actualChildId}`
+        deviceIdentifier: req.body.deviceIdentifier || `dev_${actualChildId}`
       });
     }
 

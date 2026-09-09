@@ -7,6 +7,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/services/api_client.dart';
 import '../../../core/services/device_service.dart';
 import '../../../core/services/location_service.dart';
+import '../../../core/services/storage_service.dart';
 import '../../../core/utils/date_formatter.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/location_provider.dart';
@@ -53,6 +54,7 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
     try {
       if (!mounted) return;
       final apiClient = Provider.of<ApiClient>(context, listen: false);
+      final storageService = Provider.of<StorageService>(context, listen: false);
       final deviceService = DeviceService(apiClient);
       final status = await deviceService.getDeviceStatus();
       if (mounted) {
@@ -63,8 +65,9 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
       }
       if (!mounted) return;
       final authProv = Provider.of<AuthProvider>(context, listen: false);
-      if (authProv.currentUser?.id != null) {
-        await deviceService.sendHeartbeat(childId: authProv.currentUser!.id);
+      final targetChildId = storageService.childId ?? authProv.currentUser?.id;
+      if (targetChildId != null) {
+        await deviceService.sendHeartbeat(childId: targetChildId);
       }
     } catch (e) {
       debugPrint('[ChildDashboard] Battery fetch error: $e');
