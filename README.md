@@ -6,17 +6,19 @@ Developed as a Final Year Project (FYP) for BS Computer Science and an Innovativ
 
 ---
 
-## 🌟 Key Architectural Features
+## 🎯 Sprint 1 / First Presentation Scope (Core MVP Deliverables)
 
-- **ONE Mobile Application**: Single Flutter mobile application catering to both **Parent** and **Child** roles dynamically through role-based authentication and navigation (`ParentShell` vs `ChildShell`).
-- **Multi-Tenant SaaS Architecture**: Independent family tenants (`tenantId`). Cross-tenant data leakage is strictly blocked at the backend service & query layer.
-- **Material 3 Design System**: Premium, responsive UI supporting dynamic light/dark mode switching.
-- **Privacy & Ethical Safeguards**: Standard OS UsageStats and location permissions. Zero spyware (no keylogging, no password capture, no private message reading, no covert audio/video recording).
-- **Secure Device Pairing**: Temporary 6-character pairing codes with 15-minute expiration time for linking child devices.
-- **Emergency SOS Engine**: One-tap distress signal with real-time location capture and instant critical alerts to parents.
-- **Family Routines & Hadith Content**: Prayer reminders and interactive Hadith sessions with Arabic text, English translation, Urdu translation (`اردو ترجمہ`), and completion tracking.
-- **Explainable Safety Insights**: Rule-based safety score (0–100) providing clear rationale for all safety alerts and anomalies.
-- **Subscription-Ready SaaS Entitlements**: Configurable plans (`FREE`, `FAMILY`, `PREMIUM`) with server-side feature enforcement.
+For the **Initial Proposal & Sprint 1 Defense**, the MVP demonstrates the **foundational safety, pairing, and wellbeing baseline** to reflect authentic, disciplined development progress:
+
+1. **ONE Mobile Application**: Single Flutter mobile application catering to both **Parent** and **Child** roles dynamically through role-based authentication and navigation (`ParentShell` vs `ChildShell`).
+2. **Secure 6-Character Device Pairing**: Temporary 6-character single-use pairing codes with 15-minute expiration time for linking child devices.
+3. **Live Device Status & Telemetry**: Real-time battery indicator, online/offline status, platform details, and last seen timestamp.
+4. **Physical Safety & Real-Time Location**: Transparent GPS location updates complying with official OS permissions and Google Maps integration.
+5. **Emergency SOS Distress Engine**: One-tap distress signal with instant location capture and critical alerts dispatched to parents.
+6. **Digital Wellbeing & Screen Time**: Android `UsageStats` collection with zero spyware compliance (no keylogging, no password capture, no message interception, no covert recording).
+7. **Family Multi-Tenancy**: Secure `tenantId` data segregation preventing cross-family data leakage.
+
+*Note: Safe Zone Geofencing, Family Routines (Prayer & Hadith sessions), Advanced Multi-Week Analytics, and Super Admin SaaS monetization are scheduled for subsequent sprint milestones.*
 
 ---
 

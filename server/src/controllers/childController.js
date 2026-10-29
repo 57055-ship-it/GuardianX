@@ -66,6 +66,7 @@ exports.getChildren = async (req, res) => {
               profileStatus: 'paired'
             }).exec();
           }
+        }
         if (child.deviceId && typeof child.deviceId === 'object') {
           child.device = child.deviceId;
           child.profileStatus = 'paired';

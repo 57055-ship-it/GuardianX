@@ -13,7 +13,6 @@ import '../../shared/widgets/status_badge.dart';
 import '../location/parent_location_screen.dart';
 import '../geofences/geofence_management_screen.dart';
 import '../screen_time/parent_screen_time_screen.dart';
-import '../routines/parent_routines_screen.dart';
 
 class ParentDashboardScreen extends StatefulWidget {
   const ParentDashboardScreen({super.key});
@@ -210,8 +209,8 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                             _buildMetricItem(
                               icon: Icons.shield_outlined,
                               color: AppColors.secondary,
-                              title: 'Safety Score',
-                              value: '${reportProvider.calculatedSafetyScore}/100',
+                              title: 'Status',
+                              value: selectedChild.isPaired ? 'Protected' : 'Pending',
                             ),
                           ],
                         ),
@@ -267,7 +266,7 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                 GridView.count(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: 4,
+                  crossAxisCount: 3,
                   crossAxisSpacing: 10,
                   mainAxisSpacing: 10,
                   children: [
@@ -303,18 +302,6 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                         Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) => GeofenceManagementScreen(childId: selectedChild.id),
-                          ),
-                        );
-                      },
-                    ),
-                    _buildQuickActionButton(
-                      icon: Icons.mosque_outlined,
-                      label: 'Routines',
-                      color: Colors.amber[800]!,
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => ParentRoutinesScreen(childId: selectedChild.id),
                           ),
                         );
                       },

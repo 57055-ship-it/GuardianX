@@ -1,44 +1,40 @@
-# GuardianX - Implemented Features Specification
+# GuardianX - Feature Architecture & Sprint Milestones
 
-## 1. Authentication & Multi-Tenancy
-- **Role-Based Authentication**: Supports `parent`, `child`, and `admin` roles.
-- **Tenant Isolation**: Every family is an independent SaaS tenant (`tenantId`). Multi-tenant data segregation is enforced at the backend service & database layer.
-- **Single Flutter App Architecture**: ONE mobile codebase serving custom role-tailored shells (`ParentShell` vs `ChildShell`).
+## 🎯 Sprint 1: First Presentation & Core MVP Deliverables (Active Focus)
+The initial evaluation strictly demonstrates the foundational safety and pairing mechanisms to establish authentic, incremental product development:
 
-## 2. Secure Device Pairing
-- **Temporary Pairing Codes**: Parent generates a 6-character single-use pairing code with a 15-minute expiration time.
-- **Child Linking**: Child enters pairing code on their device. The backend validates expiration, tenant ownership, and links the child's device ID.
+### 1. Authentication & Family Multi-Tenancy
+- **Parent & Child Authentication**: Clean email/password registration and login with secure JWT token management.
+- **Family Multi-Tenancy**: Data segregated strictly by `tenantId` to ensure total isolation between families.
+- **ONE Unified Mobile App**: Single Flutter app dynamically rendering `ParentShell` or `ChildShell`.
 
-## 3. Child Management & Device Monitoring
-- **Child Profiles**: Parent can create, view, update, and remove child profiles under their tenant limit.
-- **Device Status & Heartbeat**: Live battery level indicator, online/offline status, platform details, and last seen timestamp.
+### 2. Secure 6-Character Device Pairing
+- **Parent Workflow**: Generates a temporary 6-digit alphanumeric pairing code with 15-minute expiry.
+- **Child Linking**: Child enters code on their smartphone; the device is permanently linked and registered with device telemetry.
+- **Live Device Status**: Real-time battery percentage indicator and online/offline presence tracking.
 
-## 4. Location Tracking & Safe Zones (Geofencing)
-- **Transparent Location Updates**: GPS position reporting complying with Android permission rules.
-- **Geofences**: Parent can define safe zone boundaries (Home, School, Tuition) with configurable radii (e.g. 200m).
-- **Enter/Exit Alerts**: Triggers automated alerts when a child crosses safe zone boundaries.
+### 3. Physical Safety & Real-Time Location
+- **GPS Coordinates**: Accurate GPS location reporting via standard Android/iOS location services.
+- **Parent Map View**: Real-time address view and direct integration with Google Maps.
 
-## 5. Screen Time & Digital Wellbeing (Android MVP)
-- **UsageStats Integration**: Privacy-preserving app usage metadata collection (app package name, app label, duration in minutes).
-- **Zero Spyware Compliance**: No keylogging, no password capture, no private message reading, no covert audio/video recording.
-- **Usage Summaries**: Today's total screen time and app usage breakdowns for parents and children.
+### 4. Emergency SOS Distress Engine
+- **One-Tap SOS Button**: Prominent SOS button in the child application.
+- **Distress Dispatch**: Immediate transmission of emergency coordinates, triggering an instant high-priority alert on the parent's dashboard.
 
-## 6. Emergency SOS Distress Engine
-- **One-Tap Emergency Trigger**: Child presses a prominent SOS button on their dashboard.
-- **Instant Location Capture & Parent Alert**: Transmits distress coordinates and generates a critical alert on the parent's dashboard.
+### 5. Digital Wellbeing & Screen Time
+- **UsageStats Integration**: Privacy-preserving app usage metadata collection (app package, label, and duration).
+- **100% Non-Spyware**: Zero keylogging, zero message interception, zero covert mic/camera recordings.
+- **Daily Usage Breakdown**: Clean dashboard card showing today's screen time and app usage breakdown.
 
-## 7. Family Routine, Prayer Reminders & Hadith Sessions
-- **Prayer Reminders**: Configurable times for Fajr, Dhuhr, Asr, Maghrib, and Isha.
-- **Hadith Sessions**: Interactive Hadith player with Arabic text, English translation, Urdu translation (`اردو ترجمہ`), authenticity grade, and audio recitation simulator.
-- **Completion Check-In**: Child logs session completion, notifying the parent.
+---
 
-## 8. Reports & Explainable Safety Insights
-- **Daily & Weekly Reports**: Screen time averages, top used apps, location events, SOS frequency.
-- **Explainable Safety Insights**: Rule-based safety score (0–100) with clear rationale (e.g. *"Today's screen time is 5h 20m, 65% above weekly average"*).
+## 🚀 Subsequent Sprints (Post-Proposal Roadmap)
 
-## 9. Subscription-Ready SaaS Entitlements
-- **SaaS Tiers**:
-  - `FREE`: Up to 1 child.
-  - `FAMILY`: Up to 3 children + location history + advanced reports.
-  - `PREMIUM`: Up to 5 children + safety insights + advanced analytics.
-- **Backend Enforcement**: Server middleware validates entitlements before returning restricted data.
+### Sprint 2: Safe Zones & Family Routines (Mid-Term Milestone)
+- **Safe Zone Geofencing**: Configurable circular boundaries (Home, School, Tuition) with automatic boundary enter/exit notifications.
+- **Family Routines & Islamic Content**: Prayer reminders and interactive Hadith reader with Arabic, English, and Urdu translations.
+
+### Sprint 3: Monetization & Administration (Final Defense Milestone)
+- **Super Admin Control Plane**: Tenant monitoring, system audit logs, and platform health telemetry.
+- **SaaS Subscription Billing Tiers**: Automated tier enforcement (`FREE`, `FAMILY`, `PREMIUM`).
+- **Advanced Trend Reports**: Multi-week screen time trends and explainable safety insights.

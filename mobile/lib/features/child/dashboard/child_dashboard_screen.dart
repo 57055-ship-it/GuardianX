@@ -11,10 +11,8 @@ import '../../../core/services/storage_service.dart';
 import '../../../core/utils/date_formatter.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/location_provider.dart';
-import '../../../providers/routine_provider.dart';
 import '../../../providers/usage_provider.dart';
 import '../../shared/widgets/status_badge.dart';
-import '../routines/hadith_session_modal.dart';
 import '../sos/child_sos_screen.dart';
 
 class ChildDashboardScreen extends StatefulWidget {
@@ -90,8 +88,6 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
     final authProv = Provider.of<AuthProvider>(context, listen: false);
     final childId = authProv.currentUser?.id;
 
-    Provider.of<RoutineProvider>(context, listen: false).fetchRoutines(childId: childId);
-    Provider.of<RoutineProvider>(context, listen: false).fetchTodayHadith();
     if (childId != null) {
       Provider.of<UsageProvider>(context, listen: false).fetchChildUsage(childId);
     }
@@ -101,7 +97,6 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
-    final routineProvider = Provider.of<RoutineProvider>(context);
     final usageProvider = Provider.of<UsageProvider>(context);
     final locationProvider = Provider.of<LocationProvider>(context);
 
@@ -312,7 +307,7 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
               // Digital Wellbeing & Battery Status Card
               Row(
@@ -384,85 +379,7 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 22),
-
-              // Today's Family Routines
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Flexible(
-                    child: Text(
-                      "Today's Family Routines",
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  if (routineProvider.todayHadith != null)
-                    TextButton.icon(
-                      onPressed: () {
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                          ),
-                          builder: (_) => HadithSessionModal(
-                            hadith: routineProvider.todayHadith!,
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.play_circle_fill, color: AppColors.secondary, size: 18),
-                      label: const Text('Start Hadith', style: TextStyle(color: AppColors.secondary, fontSize: 12)),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              if (routineProvider.routines.isEmpty)
-                const Card(
-                  child: Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Text('No active family routines scheduled for today.'),
-                  ),
-                )
-              else
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: routineProvider.routines.length,
-                  itemBuilder: (context, index) {
-                    final routine = routineProvider.routines[index];
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      child: ListTile(
-                        leading: Icon(
-                          routine.type == 'prayer_reminder'
-                              ? Icons.mosque
-                              : Icons.menu_book,
-                          color: AppColors.secondary,
-                        ),
-                        title: Text(routine.title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text('Time: ${routine.scheduledTime}'),
-                        trailing: routine.isCompletedToday
-                            ? const StatusBadge(label: 'Completed', isSuccess: true)
-                            : ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.secondary,
-                                  minimumSize: const Size(70, 34),
-                                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                                ),
-                                onPressed: () {
-                                  routineProvider.completeRoutine(
-                                    routine.id,
-                                    childId: authProvider.currentUser?.id,
-                                  );
-                                },
-                                child: const Text('Check In', style: TextStyle(fontSize: 11)),
-                              ),
-                      ),
-                    );
-                  },
-                ),
+              const SizedBox(height: 16),
             ],
           ),
         ),

@@ -5,7 +5,6 @@ import '../../providers/alert_provider.dart';
 import 'dashboard/parent_dashboard_screen.dart';
 import 'children/children_list_screen.dart';
 import 'alerts/alerts_screen.dart';
-import 'reports/reports_screen.dart';
 import 'settings/parent_settings_screen.dart';
 
 class ParentShell extends StatefulWidget {
@@ -22,7 +21,6 @@ class _ParentShellState extends State<ParentShell> {
     ParentDashboardScreen(),
     ChildrenListScreen(),
     AlertsScreen(),
-    ReportsScreen(),
     ParentSettingsScreen(),
   ];
 
@@ -65,11 +63,6 @@ class _ParentShellState extends State<ParentShell> {
               child: const Icon(Icons.notifications, color: AppColors.primary),
             ),
             label: 'Alerts',
-          ),
-          const NavigationDestination(
-            icon: Icon(Icons.bar_chart_outlined),
-            selectedIcon: Icon(Icons.bar_chart, color: AppColors.primary),
-            label: 'Reports',
           ),
           const NavigationDestination(
             icon: Icon(Icons.settings_outlined),

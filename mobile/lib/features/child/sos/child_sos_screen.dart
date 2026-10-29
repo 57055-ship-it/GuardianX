@@ -84,7 +84,7 @@ class _ChildSOSScreenState extends State<ChildSOSScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
               const Text(
-                'PANICTING OR IN DANGER?',
+                'FEELING UNSAFE OR IN DANGER?',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
