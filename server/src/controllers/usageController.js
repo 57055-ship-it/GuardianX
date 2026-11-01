@@ -322,7 +322,11 @@ exports.getAppUsage = async (req, res) => {
 // POST /api/usage/block-app (Block or unblock an app for a child)
 exports.toggleBlockApp = async (req, res) => {
   try {
-    const { childId, packageName, appName, isBlocked } = req.body;
+    const { childId, packageName, appName } = req.body;
+    const shouldBlock = req.body.isBlocked !== undefined
+      ? (req.body.isBlocked === true || req.body.isBlocked === 'true')
+      : (req.body.block === true || req.body.block === 'true');
+
     if (!childId || !mongoose.Types.ObjectId.isValid(childId)) {
       return res.status(400).json({
         success: false,
@@ -357,8 +361,6 @@ exports.toggleBlockApp = async (req, res) => {
     if (!Array.isArray(childProfile.blockedApps)) {
       childProfile.blockedApps = [];
     }
-
-    const shouldBlock = isBlocked === true || isBlocked === 'true';
 
     if (shouldBlock) {
       const exists = childProfile.blockedApps.some((b) => b.packageName === trimmedPkg);

@@ -16,6 +16,15 @@ class MainActivity : FlutterFragmentActivity() {
     private val USAGE_CHANNEL = "com.guardianx/usage_stats"
     private val BLOCKER_CHANNEL = "com.guardianx/app_blocker"
 
+    override fun onCreate(savedInstanceState: android.os.Bundle?) {
+        super.onCreate(savedInstanceState)
+        BlockerManager.initialize(applicationContext)
+        val blocked = BlockerManager.getBlockedPackages(applicationContext)
+        if (blocked.isNotEmpty()) {
+            AppBlockerService.startService(applicationContext)
+        }
+    }
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
@@ -50,10 +59,36 @@ class MainActivity : FlutterFragmentActivity() {
                     result.success(openUsageAccessSettings())
                 }
                 "isAppBlockingEnabled" -> {
-                    result.success(true)
+                    result.success(checkUsageStatsPermission())
                 }
                 "setBlockedApps" -> {
-                    result.success(true)
+                    val rawPkgs = call.argument<List<String>>("packages")
+                        ?: if (call.arguments is List<*>) {
+                            @Suppress("UNCHECKED_CAST")
+                            call.arguments as List<String>
+                        } else null
+
+                    if (rawPkgs != null) {
+                        BlockerManager.setBlockedPackages(applicationContext, rawPkgs)
+                        result.success(true)
+                    } else {
+                        result.error("INVALID_ARGUMENT", "packages list required", null)
+                    }
+                }
+                "getBlockedApps" -> {
+                    val blocked = BlockerManager.getBlockedPackages(applicationContext)
+                    result.success(ArrayList(blocked))
+                }
+                "hasOverlayPermission" -> {
+                    val hasOverlay = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        Settings.canDrawOverlays(this)
+                    } else {
+                        true
+                    }
+                    result.success(hasOverlay)
+                }
+                "requestOverlayPermission" -> {
+                    result.success(openOverlaySettings())
                 }
                 "enablePrayerLock" -> {
                     result.success(true)
@@ -119,6 +154,33 @@ class MainActivity : FlutterFragmentActivity() {
             true
         } catch (e: Exception) {
             false
+        }
+    }
+
+    private fun openOverlaySettings(): Boolean {
+        return try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                val intent = Intent(
+                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:$packageName")
+                ).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                startActivity(intent)
+                true
+            } else {
+                true
+            }
+        } catch (e: Exception) {
+            try {
+                val fallback = Intent(Settings.ACTION_SETTINGS).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                startActivity(fallback)
+                true
+            } catch (e2: Exception) {
+                false
+            }
         }
     }
 

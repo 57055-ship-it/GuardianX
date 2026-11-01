@@ -46,6 +46,9 @@ class _ChildActivityScreenState extends State<ChildActivityScreen> with WidgetsB
     } else if (childId != null) {
       await usageProvider.fetchChildUsage(childId);
     }
+    if (childId != null) {
+      await usageProvider.fetchBlockedApps(childId);
+    }
   }
 
   @override
@@ -150,7 +153,86 @@ class _ChildActivityScreenState extends State<ChildActivityScreen> with WidgetsB
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
+
+              // PARENTAL RESTRICTIONS / BLOCKED APPS BANNER
+              if (usageProvider.blockedAppsList.isNotEmpty) ...[
+                Card(
+                  color: const Color(0xFFFEF2F2),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: const BorderSide(color: Color(0xFFFCA5A5), width: 1.2),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: Colors.red.shade100,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(Icons.block, color: Colors.red.shade700, size: 18),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'Apps Blocked by Parent (${usageProvider.blockedAppsList.length})',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                  color: Colors.red.shade900,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Your parent has restricted access to these apps. They will be automatically intercepted if opened.',
+                          style: TextStyle(fontSize: 12, color: Colors.red.shade800),
+                        ),
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: usageProvider.blockedAppsList.map((app) {
+                            final name = app['appName']?.toString() ?? app['packageName']?.toString() ?? 'App';
+                            return Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: Colors.red.shade300),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.lock, size: 13, color: Colors.red.shade700),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    name,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.red.shade900,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
 
               const Text('My App Usage', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
@@ -197,25 +279,79 @@ class _ChildActivityScreenState extends State<ChildActivityScreen> with WidgetsB
                   itemCount: usageProvider.appUsages.length,
                   itemBuilder: (context, index) {
                     final item = usageProvider.appUsages[index];
+                    final isBlocked = item.isBlocked || usageProvider.isAppBlocked(item.packageName);
+
                     return Card(
                       margin: const EdgeInsets.only(bottom: 8),
+                      color: isBlocked ? const Color(0xFFFFF1F2) : null,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(
+                          color: isBlocked ? Colors.red.shade200 : Colors.grey.shade200,
+                          width: isBlocked ? 1.2 : 0.8,
+                        ),
+                      ),
                       child: ListTile(
                         leading: CircleAvatar(
-                          backgroundColor: AppColors.secondary.withOpacity(0.15),
-                          child: const Icon(Icons.android, color: AppColors.secondary),
+                          backgroundColor: isBlocked
+                              ? Colors.red.shade100
+                              : AppColors.secondary.withOpacity(0.15),
+                          child: Icon(
+                            isBlocked ? Icons.lock : Icons.android,
+                            color: isBlocked ? Colors.red.shade700 : AppColors.secondary,
+                          ),
                         ),
-                        title: Text(item.appName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        title: Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                item.appName,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: isBlocked ? Colors.red.shade900 : null,
+                                  decoration: isBlocked ? TextDecoration.lineThrough : null,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (isBlocked) ...[
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.red.shade600,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: const Text(
+                                  'BLOCKED',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
                         subtitle: Text(
-                          item.packageName,
-                          style: const TextStyle(fontSize: 11, color: Colors.grey),
+                          isBlocked
+                              ? 'Access restricted by parent'
+                              : item.packageName,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isBlocked ? Colors.red.shade700 : Colors.grey,
+                            fontWeight: isBlocked ? FontWeight.w600 : FontWeight.normal,
+                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         trailing: Text(
                           DateFormatter.formatMinutesToDuration(item.usageDuration),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: AppColors.secondary,
+                            color: isBlocked ? Colors.red.shade700 : AppColors.secondary,
                             fontSize: 14,
                           ),
                         ),

@@ -108,6 +108,9 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> with Widget
     } else if (childId != null) {
       await usageProv.fetchChildUsage(childId);
     }
+    if (childId != null) {
+      await usageProv.fetchBlockedApps(childId);
+    }
     _fetchRealBatteryStatus();
   }
 
@@ -120,6 +123,9 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> with Widget
       final hasPerm = await usageProv.checkPermission();
       if (hasPerm) {
         await usageProv.syncUsageStats(childId: childId);
+      }
+      if (childId != null) {
+        await usageProv.fetchBlockedApps(childId);
       }
     } catch (e) {
       debugPrint('[ChildDashboard] Usage sync error: $e');
@@ -480,6 +486,97 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> with Widget
               ),
               const SizedBox(height: 16),
 
+              // BLOCKED APPS BY PARENT ALERT CARD
+              if (usageProvider.blockedAppsList.isNotEmpty) ...[
+                Card(
+                  color: const Color(0xFFFEF2F2), // Light soft red
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: const BorderSide(color: Color(0xFFFCA5A5), width: 1.2),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: Colors.red.shade100,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(Icons.block, color: Colors.red.shade700, size: 18),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Apps Blocked by Parent (${usageProvider.blockedAppsList.length})',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                      color: Colors.red.shade900,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'Access to these apps is restricted:',
+                                    style: TextStyle(fontSize: 11, color: Colors.red.shade700),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: usageProvider.blockedAppsList.map((app) {
+                            final name = app['appName']?.toString() ?? app['packageName']?.toString() ?? 'App';
+                            return Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: Colors.red.shade300),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.red.withOpacity(0.06),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.lock, size: 12, color: Colors.red.shade700),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    name,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.red.shade900,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+
               // TOP RECENT APPS SUMMARY
               if (usageProvider.appUsages.isNotEmpty) ...[
                 Card(
@@ -514,34 +611,73 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> with Widget
                           ],
                         ),
                         const Divider(height: 16),
-                        ...usageProvider.appUsages.take(3).map((usage) => Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4.0),
-                          child: Row(
-                            children: [
-                              CircleAvatar(
-                                radius: 14,
-                                backgroundColor: AppColors.secondary.withOpacity(0.12),
-                                child: const Icon(Icons.android, size: 16, color: AppColors.secondary),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Text(
-                                  usage.appName,
-                                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-                                  overflow: TextOverflow.ellipsis,
+                        ...usageProvider.appUsages.take(3).map((usage) {
+                          final isBlocked = usage.isBlocked || usageProvider.isAppBlocked(usage.packageName);
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4.0),
+                            child: Row(
+                              children: [
+                                CircleAvatar(
+                                  radius: 14,
+                                  backgroundColor: isBlocked
+                                      ? Colors.red.shade50
+                                      : AppColors.secondary.withOpacity(0.12),
+                                  child: Icon(
+                                    isBlocked ? Icons.lock : Icons.android,
+                                    size: 16,
+                                    color: isBlocked ? Colors.red.shade700 : AppColors.secondary,
+                                  ),
                                 ),
-                              ),
-                              Text(
-                                DateFormatter.formatMinutesToDuration(usage.usageDuration),
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.secondary,
-                                  fontSize: 12,
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Row(
+                                    children: [
+                                      Flexible(
+                                        child: Text(
+                                          usage.appName,
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 13,
+                                            color: isBlocked ? Colors.red.shade900 : null,
+                                            decoration: isBlocked ? TextDecoration.lineThrough : null,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      if (isBlocked) ...[
+                                        const SizedBox(width: 6),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: Colors.red.shade600,
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          child: const Text(
+                                            'BLOCKED',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.bold,
+                                              letterSpacing: 0.5,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        )),
+                                Text(
+                                  DateFormatter.formatMinutesToDuration(usage.usageDuration),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: isBlocked ? Colors.red.shade700 : AppColors.secondary,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
                       ],
                     ),
                   ),

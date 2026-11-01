@@ -26,10 +26,19 @@
     <!-- 7. Biometric & Face ID Authentication Permission -->
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
 
+    <!-- 8. Overlay Permission to display Blocked App Screen over restricted apps -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
+    <!-- 9. Boot Completed to resume protection service on phone reboot -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
     <!-- Queries for explicit system settings navigation -->
     <queries>
         <intent>
             <action android:name="android.settings.USAGE_ACCESS_SETTINGS" />
+        </intent>
+        <intent>
+            <action android:name="android.settings.action.MANAGE_OVERLAY_PERMISSION" />
         </intent>
         <intent>
             <action android:name="android.settings.APPLICATION_DETAILS_SETTINGS" />
@@ -68,6 +77,29 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!-- Native Blocked App Interception Screen -->
+        <activity
+            android:name=".BlockedAppActivity"
+            android:exported="false"
+            android:launchMode="singleInstance"
+            android:excludeFromRecents="true"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
+
+        <!-- Foreground Service monitoring and enforcing blocked applications -->
+        <service
+            android:name=".AppBlockerService"
+            android:exported="false" />
+
+        <!-- Boot Completed Receiver to resume protection upon phone restart -->
+        <receiver
+            android:name=".BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

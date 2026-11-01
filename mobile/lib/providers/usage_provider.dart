@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/services/app_blocker_service.dart';
 import '../core/services/storage_service.dart';
 import '../core/services/usage_stats_service.dart';
 import '../models/app_usage_model.dart';
@@ -8,6 +9,7 @@ class UsageProvider with ChangeNotifier {
   final UsageRepository _usageRepository;
   final StorageService? _storageService;
   final UsageStatsService _usageStatsService = UsageStatsService();
+  final AppBlockerNativeService _appBlockerService = AppBlockerNativeService();
 
   List<AppUsageModel> _appUsages = [];
   int _totalScreenTimeMinutes = 0;
@@ -20,11 +22,13 @@ class UsageProvider with ChangeNotifier {
   String? _lastLoggedErrorMessage;
   DateTime? _lastSyncAttemptTime;
   List<String> _blockedPackages = [];
+  List<Map<String, dynamic>> _blockedAppsList = [];
 
   UsageProvider(this._usageRepository, [this._storageService]);
 
   List<AppUsageModel> get appUsages => _appUsages;
   List<String> get blockedPackages => _blockedPackages;
+  List<Map<String, dynamic>> get blockedAppsList => _blockedAppsList;
   int get totalScreenTimeMinutes => _totalScreenTimeMinutes;
   bool get isLoading => _isLoading;
   String? get error => _error;
@@ -49,7 +53,24 @@ class UsageProvider with ChangeNotifier {
     return success;
   }
 
-  /// Fetch usage logs and total screen time from backend for a child
+  /// Check whether overlay (Appear on top) permission is granted
+  Future<bool> hasOverlayPermission() async {
+    return await _appBlockerService.hasOverlayPermission();
+  }
+
+  /// Open Android System Settings to grant Appear on top permission
+  Future<bool> requestOverlayPermission() async {
+    return await _appBlockerService.requestOverlayPermission();
+  }
+
+  /// Sync list of blocked packages with native Android Blocker
+  Future<void> syncBlockedToNative() async {
+    if (AppBlockerNativeService.isPlatformSupported) {
+      await _appBlockerService.setBlockedApps(_blockedPackages);
+    }
+  }
+
+  /// Fetch usage logs, screen time, and blocked apps from backend for a child
   Future<void> fetchChildUsage(String childId) async {
     _isLoading = true;
     _error = null;
@@ -57,17 +78,61 @@ class UsageProvider with ChangeNotifier {
 
     try {
       final todayStr = DateTime.now().toIso8601String().split('T')[0];
-      _appUsages = await _usageRepository.getAppUsage(childId, date: todayStr);
+      final remoteUsages = await _usageRepository.getAppUsage(childId, date: todayStr);
       _totalScreenTimeMinutes = await _usageRepository.getScreenTime(childId, date: todayStr);
-      _blockedPackages = _appUsages
-          .where((u) => u.isBlocked)
-          .map((u) => u.packageName)
-          .toList();
+      
+      // Also fetch dedicated blocked apps list from server
+      final remoteBlocked = await _usageRepository.getBlockedApps(childId);
+      _blockedAppsList = remoteBlocked;
+
+      final packageSet = <String>{};
+      for (final b in remoteBlocked) {
+        final pkg = b['packageName']?.toString();
+        if (pkg != null && pkg.isNotEmpty) packageSet.add(pkg);
+      }
+      for (final u in remoteUsages) {
+        if (u.isBlocked) packageSet.add(u.packageName);
+      }
+      _blockedPackages = packageSet.toList();
+
+      // Ensure every item reflects the latest blocked status
+      _appUsages = remoteUsages.map((u) {
+        final isBlocked = _blockedPackages.contains(u.packageName);
+        return u.isBlocked == isBlocked ? u : u.copyWith(isBlocked: isBlocked);
+      }).toList();
+
+      // Sync down to Android Blocker Service
+      await syncBlockedToNative();
     } catch (e) {
       _error = e.toString();
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  /// Explicitly refresh blocked apps list from server and update native blocker
+  Future<void> fetchBlockedApps(String childId) async {
+    try {
+      final remoteBlocked = await _usageRepository.getBlockedApps(childId);
+      _blockedAppsList = remoteBlocked;
+
+      final packageSet = <String>{};
+      for (final b in remoteBlocked) {
+        final pkg = b['packageName']?.toString();
+        if (pkg != null && pkg.isNotEmpty) packageSet.add(pkg);
+      }
+      _blockedPackages = packageSet.toList();
+
+      _appUsages = _appUsages.map((u) {
+        final isBlocked = _blockedPackages.contains(u.packageName);
+        return u.copyWith(isBlocked: isBlocked);
+      }).toList();
+
+      notifyListeners();
+      await syncBlockedToNative();
+    } catch (e) {
+      debugPrint('[UsageProvider] fetchBlockedApps error: $e');
     }
   }
 
@@ -158,8 +223,30 @@ class UsageProvider with ChangeNotifier {
         usageDuration: s.usageDurationMinutes,
         sessionCount: s.sessionCount,
         date: DateTime.now().toIso8601String().split('T')[0],
+        isBlocked: _blockedPackages.contains(s.packageName),
       )).toList();
       notifyListeners();
+
+      // Refresh blocked apps list from server if childId is available
+      if (effectiveChildId.isNotEmpty) {
+        try {
+          final remoteBlocked = await _usageRepository.getBlockedApps(effectiveChildId);
+          if (remoteBlocked.isNotEmpty || _blockedAppsList.isNotEmpty) {
+            _blockedAppsList = remoteBlocked;
+            final pkgSet = remoteBlocked
+                .map((b) => b['packageName']?.toString() ?? '')
+                .where((p) => p.isNotEmpty)
+                .toSet();
+            _blockedPackages = pkgSet.toList();
+            _appUsages = _appUsages.map((u) {
+              final blocked = _blockedPackages.contains(u.packageName);
+              return u.isBlocked == blocked ? u : u.copyWith(isBlocked: blocked);
+            }).toList();
+            notifyListeners();
+            await syncBlockedToNative();
+          }
+        } catch (_) {}
+      }
 
       // 12. Prevent duplicate synchronization of identical usage records
       final currentSignature = stats.map((s) => '${s.packageName}:${s.usageDurationMinutes}').join('|');
