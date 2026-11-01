@@ -1,6 +1,7 @@
 import 'dart:io' show Platform;
 import 'package:app_usage/app_usage.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class AppUsageData {
@@ -25,6 +26,9 @@ class AppUsageData {
 }
 
 class UsageStatsService {
+  static const MethodChannel _channel = MethodChannel('com.guardianx/usage_stats');
+  static final Map<String, String> _appNameCache = {};
+
   /// Platform capability check for Android UsageStatsManager
   static bool get isPlatformSupported => !kIsWeb && Platform.isAndroid;
 
@@ -32,57 +36,169 @@ class UsageStatsService {
   Future<bool> openUsageSettings() async {
     if (!isPlatformSupported) return false;
     try {
+      final bool? success = await _channel.invokeMethod<bool>('openUsageSettings');
+      if (success == true) return true;
+    } catch (e) {
+      debugPrint('[UsageStatsService] Native openUsageSettings channel error: $e');
+    }
+    // Fallback to permission_handler
+    try {
       return await openAppSettings();
     } catch (e) {
-      debugPrint('[UsageStatsService] Failed to open system settings: $e');
+      debugPrint('[UsageStatsService] openAppSettings fallback error: $e');
       return false;
     }
   }
 
-  /// Check if Android UsageStats permission is granted
+  /// Check if Android UsageStats permission is granted via native AppOps
   Future<bool> hasUsagePermission() async {
     if (!isPlatformSupported) {
       return false;
     }
     try {
-      final now = DateTime.now();
-      final startDate = now.subtract(const Duration(minutes: 5));
-      final usage = await AppUsage().getAppUsage(startDate, now);
-      return usage.isNotEmpty;
+      final bool? granted = await _channel.invokeMethod<bool>('hasUsagePermission');
+      if (granted != null) return granted;
     } catch (e) {
-      debugPrint('[UsageStatsService] Permission check error: $e');
+      debugPrint('[UsageStatsService] Native hasUsagePermission channel error: $e');
+    }
+
+    // Fallback: If AppUsage().getAppUsage() doesn't throw, permission is granted
+    try {
+      final now = DateTime.now();
+      final startDate = DateTime(now.year, now.month, now.day);
+      await AppUsage().getAppUsage(startDate, now);
+      return true;
+    } catch (e) {
+      debugPrint('[UsageStatsService] Permission fallback check error: $e');
       return false;
     }
   }
 
   /// Query real Android UsageStatsManager data for today's application usage
   Future<List<AppUsageData>> getTodayUsageStats() async {
-    if (isPlatformSupported) {
-      try {
-        final now = DateTime.now();
-        final startDate = DateTime(now.year, now.month, now.day);
-        final List<AppUsageInfo> infos = await AppUsage().getAppUsage(startDate, now);
-
-        final List<AppUsageData> realList = infos
-            .where((info) => info.usage.inMinutes > 0)
-            .map((info) => AppUsageData(
-                  packageName: info.packageName,
-                  appName: info.appName.isNotEmpty ? info.appName : info.packageName,
-                  usageDurationMinutes: info.usage.inMinutes,
-                  sessionCount: 1,
-                ))
-            .toList();
-
-        if (realList.isNotEmpty) {
-          realList.sort((a, b) => b.usageDurationMinutes.compareTo(a.usageDurationMinutes));
-          return realList;
-        }
-      } catch (e) {
-        debugPrint('[UsageStatsService] Native AppUsage fetch error: $e');
-      }
+    if (!isPlatformSupported) {
+      return [];
     }
 
-    // On iOS or when no usage is logged, return empty list (no fake data)
-    return [];
+    final hasPerm = await hasUsagePermission();
+    if (!hasPerm) {
+      debugPrint('[UsageStatsService] Permission not granted, skipping query.');
+      return [];
+    }
+
+    try {
+      final now = DateTime.now();
+      final startDate = DateTime(now.year, now.month, now.day, 0, 0, 0);
+      final List<AppUsageInfo> infos = await AppUsage().getAppUsage(startDate, now);
+
+      // System background and launcher packages to exclude from screen time
+      final ignoredPackages = {
+        'com.guardianx.app',
+        'android',
+        'com.android.systemui',
+        'com.google.android.inputmethod.latin',
+        'com.samsung.android.honeyboard',
+        'com.google.android.apps.nexuslauncher',
+        'com.sec.android.app.launcher',
+        'com.miui.home',
+        'com.huawei.android.launcher',
+      };
+
+      final List<AppUsageData> realList = [];
+      for (final info in infos) {
+        final pkg = info.packageName.trim();
+        if (pkg.isEmpty) {
+          debugPrint('[UsageStatsService] Skipping entry with empty package name');
+          continue;
+        }
+
+        if (ignoredPackages.contains(pkg)) continue;
+
+        // Count apps used today: if inMinutes > 0 or inSeconds >= 20, count as at least 1 min
+        int durationMinutes = info.usage.inMinutes;
+        if (durationMinutes == 0 && info.usage.inSeconds >= 20) {
+          durationMinutes = 1;
+        }
+
+        if (durationMinutes <= 0) continue;
+
+        final friendlyName = await resolveAppTitle(pkg, info.appName);
+        if (friendlyName.isEmpty) continue;
+
+        realList.add(AppUsageData(
+          packageName: pkg,
+          appName: friendlyName,
+          usageDurationMinutes: durationMinutes,
+          sessionCount: 1,
+        ));
+      }
+
+      if (realList.isNotEmpty) {
+        realList.sort((a, b) => b.usageDurationMinutes.compareTo(a.usageDurationMinutes));
+      }
+      return realList;
+    } catch (e) {
+      debugPrint('[UsageStatsService] Native AppUsage fetch error: $e');
+      return [];
+    }
+  }
+
+  /// Resolve human-readable application label using Android PackageManager,
+  /// with fallback to dictionary lookup and package name formatting.
+  Future<String> resolveAppTitle(String pkg, String rawAppName) async {
+    if (_appNameCache.containsKey(pkg)) {
+      return _appNameCache[pkg]!;
+    }
+
+    // Try resolving directly via Android PackageManager through platform channel
+    if (isPlatformSupported) {
+      try {
+        final String? nativeLabel = await _channel.invokeMethod<String>(
+          'getAppLabel',
+          {'packageName': pkg},
+        );
+        if (nativeLabel != null && nativeLabel.trim().isNotEmpty) {
+          final label = nativeLabel.trim();
+          _appNameCache[pkg] = label;
+          return label;
+        }
+      } catch (_) {}
+    }
+
+    final resolved = _resolveFriendlyName(pkg, rawAppName);
+    _appNameCache[pkg] = resolved;
+    return resolved;
+  }
+
+  /// Resolve user-friendly app titles for popular Android packages
+  static String _resolveFriendlyName(String pkg, String appName) {
+    if (appName.isNotEmpty && appName != pkg && !appName.startsWith('com.')) {
+      return appName;
+    }
+    final lower = pkg.toLowerCase();
+    if (lower.contains('youtube')) return 'YouTube';
+    if (lower.contains('whatsapp')) return 'WhatsApp';
+    if (lower.contains('chrome')) return 'Google Chrome';
+    if (lower.contains('instagram')) return 'Instagram';
+    if (lower.contains('facebook') && lower.contains('orca')) return 'Messenger';
+    if (lower.contains('facebook')) return 'Facebook';
+    if (lower.contains('tiktok') || lower.contains('musically')) return 'TikTok';
+    if (lower.contains('snapchat')) return 'Snapchat';
+    if (lower.contains('spotify')) return 'Spotify';
+    if (lower.contains('netflix')) return 'Netflix';
+    if (lower.contains('roblox')) return 'Roblox';
+    if (lower.contains('discord')) return 'Discord';
+    if (lower.contains('telegram')) return 'Telegram';
+    if (lower.contains('twitter') || lower.contains('.x.')) return 'X (Twitter)';
+    if (lower.contains('maps')) return 'Google Maps';
+    if (lower.contains('gmail') || lower.contains('.gm')) return 'Gmail';
+    if (lower.contains('play.games')) return 'Google Play Games';
+    if (lower.contains('vending')) return 'Google Play Store';
+
+    // Fallback: capitalize last segment of package name
+    final segments = pkg.split('.');
+    final last = segments.isNotEmpty ? segments.last : pkg;
+    if (last.isEmpty) return pkg;
+    return last.substring(0, 1).toUpperCase() + last.substring(1);
   }
 }

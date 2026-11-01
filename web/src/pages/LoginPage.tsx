@@ -24,9 +24,13 @@ export const LoginPage: React.FC = () => {
     try {
       await login(email, password);
       navigate('/dashboard');
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Login failed. Check your credentials.';
-      setError(msg);
+    } catch (err: any) {
+      const serverMsg = err.response?.data?.message;
+      if (err.response?.status === 429) {
+        setError(serverMsg || 'Too many requests. Please wait a moment and try again.');
+      } else {
+        setError(serverMsg || (err instanceof Error ? err.message : 'Login failed. Check your credentials.'));
+      }
     }
   };
 

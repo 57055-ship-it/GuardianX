@@ -138,7 +138,7 @@ exports.joinPairingCode = async (req, res) => {
         tenantId: pairingCode.tenantId,
         childId: childProfile._id,
         deviceName: deviceName || `${childProfile.name}'s Device`,
-        platform: platform || 'android',
+        platform: (platform || 'android').toLowerCase(),
         deviceIdentifier,
         batteryLevel: parsedBattery,
         isOnline: true,

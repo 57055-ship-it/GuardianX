@@ -21,6 +21,9 @@ const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
 
+// Trust reverse proxy (Render, Vercel, Nginx, Cloudflare) so Express and express-rate-limit identify client IPs accurately
+app.set('trust proxy', 1);
+
 // Security Middlewares
 app.use(helmet());
 
@@ -52,13 +55,26 @@ app.use(
   })
 );
 
-// Rate Limiting (100 requests per 15 mins)
+// Rate Limiting (generous ceiling for real-time mobile telemetry, heartbeat, and live parent monitoring)
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 200,
+  max: 5000,
+  standardHeaders: true,
+  legacyHeaders: false,
   message: { success: false, message: 'Too many requests from this IP, please try again later.' }
 });
 app.use('/api/', limiter);
+
+// Dedicated Authentication Rate Limiting
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 120,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many login attempts, please try again in a few minutes.' }
+});
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
 
 // Body Parsing
 app.use(express.json());

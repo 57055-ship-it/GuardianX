@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import '../core/constants/api_constants.dart';
 import '../core/services/api_client.dart';
 import '../models/location_model.dart';
@@ -34,8 +35,12 @@ class LocationRepository {
   Future<LocationModel?> getLatestLocation(String childId) async {
     try {
       final response = await _apiClient.get('${ApiConstants.location}/$childId/latest');
-      return LocationModel.fromJson(response['location']);
-    } catch (_) {
+      if (response != null && response['location'] != null) {
+        return LocationModel.fromJson(response['location']);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('[LocationRepository] getLatestLocation error for childId=$childId: $e');
       return null;
     }
   }
@@ -45,7 +50,8 @@ class LocationRepository {
       final response = await _apiClient.get('${ApiConstants.location}/$childId/history?limit=$limit');
       final List list = response['history'] ?? [];
       return list.map((json) => LocationModel.fromJson(json)).toList();
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[LocationRepository] getLocationHistory error for childId=$childId: $e');
       return [];
     }
   }

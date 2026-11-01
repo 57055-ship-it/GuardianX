@@ -28,24 +28,45 @@ class AuthProvider with ChangeNotifier {
   String? get role => _currentUser?.role ?? _storageService.role;
   bool get isParent => role == 'parent';
   bool get isChild => role == 'child';
+  String? get childId => _storageService.childId ?? _currentUser?.id;
 
   Future<void> checkSession() async {
     _status = AuthStatus.loading;
     notifyListeners();
 
     if (_storageService.isAuthenticated) {
-      try {
-        _currentUser = await _authRepository.getProfile();
+      // Pre-populate user from cached preferences so app launches into dashboard immediately
+      if (_storageService.role != null) {
+        _currentUser = UserModel(
+          id: _storageService.childId ?? _storageService.userId ?? '',
+          tenantId: _storageService.tenantId ?? '',
+          role: _storageService.role!,
+          name: _storageService.userName ?? 'User',
+          email: '',
+        );
         _status = AuthStatus.authenticated;
+        notifyListeners();
+      }
+
+      try {
+        final profile = await _authRepository.getProfile();
+        _currentUser = profile;
+        _status = AuthStatus.authenticated;
+        notifyListeners();
       } catch (e) {
-        // If session check fails, clear token
-        await _storageService.clearAuthData();
-        _status = AuthStatus.unauthenticated;
+        // Only invalidate on explicit 401 unauthorized, not network/timeout errors
+        final errStr = e.toString().toLowerCase();
+        if (errStr.contains('401') || errStr.contains('unauthorized') || errStr.contains('invalid token')) {
+          await _storageService.clearAuthData();
+          _currentUser = null;
+          _status = AuthStatus.unauthenticated;
+          notifyListeners();
+        }
       }
     } else {
       _status = AuthStatus.unauthenticated;
+      notifyListeners();
     }
-    notifyListeners();
   }
 
   Future<bool> login(String email, String password) async {

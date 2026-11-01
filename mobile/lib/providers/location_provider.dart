@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import '../core/services/location_service.dart';
 import '../models/location_model.dart';
 import '../repositories/location_repository.dart';
@@ -19,6 +20,8 @@ class LocationProvider with ChangeNotifier {
   bool _isTrackingActive = false;
   LocationResult? _currentChildPosition;
   int _pendingOfflinePoints = 0;
+  DateTime? _lastTransmittedTime;
+  LocationResult? _lastTransmittedPosition;
 
   LocationProvider(this._locationRepository);
 
@@ -90,20 +93,37 @@ class LocationProvider with ChangeNotifier {
           heading: initialRes.heading,
           childId: childId,
         );
+        _lastTransmittedTime = DateTime.now();
+        _lastTransmittedPosition = initialRes;
       }
     } catch (e) {
       debugPrint('[LocationProvider] Initial location sync error: $e');
     }
 
-    // Subscribe to sensor stream with 10m distance filter and 15s interval
+    // Subscribe to sensor stream with 20m distance filter and 30s interval for battery/quota optimization
     _positionSubscription = _locationService
-        .getPositionStream(distanceFilterMeters: 10, timeIntervalSeconds: 15)
+        .getPositionStream(distanceFilterMeters: 20, timeIntervalSeconds: 30)
         .listen(
       (pos) async {
         _currentChildPosition = pos;
         notifyListeners();
 
         if (pos.hasRealSignal) {
+          // Client-side throttle: skip redundant transmits if device is stationary (< 15m) and < 60s elapsed
+          final now = DateTime.now();
+          if (_lastTransmittedTime != null && _lastTransmittedPosition != null) {
+            final elapsedSec = now.difference(_lastTransmittedTime!).inSeconds;
+            final distMeters = Geolocator.distanceBetween(
+              _lastTransmittedPosition!.latitude,
+              _lastTransmittedPosition!.longitude,
+              pos.latitude,
+              pos.longitude,
+            );
+            if (distMeters < 15 && elapsedSec < 60) {
+              return;
+            }
+          }
+
           try {
             await _locationRepository.recordLocation(
               latitude: pos.latitude,
@@ -114,6 +134,8 @@ class LocationProvider with ChangeNotifier {
               heading: pos.heading,
               childId: childId,
             );
+            _lastTransmittedTime = now;
+            _lastTransmittedPosition = pos;
             if (_pendingOfflinePoints > 0) _pendingOfflinePoints = 0;
           } catch (e) {
             _pendingOfflinePoints++;

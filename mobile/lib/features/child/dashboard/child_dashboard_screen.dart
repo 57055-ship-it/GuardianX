@@ -8,11 +8,13 @@ import '../../../core/services/api_client.dart';
 import '../../../core/services/device_service.dart';
 import '../../../core/services/location_service.dart';
 import '../../../core/services/storage_service.dart';
+import '../../../core/services/usage_stats_service.dart';
 import '../../../core/utils/date_formatter.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/location_provider.dart';
 import '../../../providers/usage_provider.dart';
 import '../../shared/widgets/status_badge.dart';
+import '../activity/child_activity_screen.dart';
 import '../sos/child_sos_screen.dart';
 
 class ChildDashboardScreen extends StatefulWidget {
@@ -22,7 +24,7 @@ class ChildDashboardScreen extends StatefulWidget {
   State<ChildDashboardScreen> createState() => _ChildDashboardScreenState();
 }
 
-class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
+class _ChildDashboardScreenState extends State<ChildDashboardScreen> with WidgetsBindingObserver {
   int _batteryLevel = 100;
   bool _isCharging = false;
   StreamSubscription<BatteryState>? _batterySubscription;
@@ -31,18 +33,29 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadChildData();
       _fetchRealBatteryStatus();
       _listenToBatteryChanges();
       _heartbeatTimer = Timer.periodic(const Duration(seconds: 30), (_) {
         _fetchRealBatteryStatus();
+        _syncChildUsage();
       });
     });
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Re-check permissions and sync immediately when child returns from Android Settings
+      _syncChildUsage();
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _heartbeatTimer?.cancel();
     _batterySubscription?.cancel();
     super.dispose();
@@ -84,14 +97,33 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
     }
   }
 
-  void _loadChildData() {
+  Future<void> _loadChildData() async {
     final authProv = Provider.of<AuthProvider>(context, listen: false);
-    final childId = authProv.currentUser?.id;
+    final childId = authProv.childId ?? authProv.currentUser?.id;
+    final usageProv = Provider.of<UsageProvider>(context, listen: false);
 
-    if (childId != null) {
-      Provider.of<UsageProvider>(context, listen: false).fetchChildUsage(childId);
+    final hasPerm = await usageProv.checkPermission();
+    if (hasPerm && UsageStatsService.isPlatformSupported) {
+      await usageProv.syncUsageStats(childId: childId);
+    } else if (childId != null) {
+      await usageProv.fetchChildUsage(childId);
     }
     _fetchRealBatteryStatus();
+  }
+
+  Future<void> _syncChildUsage() async {
+    try {
+      if (!mounted) return;
+      final authProv = Provider.of<AuthProvider>(context, listen: false);
+      final childId = authProv.childId ?? authProv.currentUser?.id;
+      final usageProv = Provider.of<UsageProvider>(context, listen: false);
+      final hasPerm = await usageProv.checkPermission();
+      if (hasPerm) {
+        await usageProv.syncUsageStats(childId: childId);
+      }
+    } catch (e) {
+      debugPrint('[ChildDashboard] Usage sync error: $e');
+    }
   }
 
   @override
@@ -165,6 +197,65 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
                 ),
               ),
               const SizedBox(height: 16),
+
+              // ANDROID USAGE ACCESS PERMISSION BANNER
+              if (UsageStatsService.isPlatformSupported && !usageProvider.hasPermission) ...[
+                Card(
+                  color: Colors.amber.shade50,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: BorderSide(color: Colors.amber.shade300, width: 1.2),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.warning_amber_rounded, color: Colors.amber.shade800, size: 24),
+                            const SizedBox(width: 8),
+                            const Expanded(
+                              child: Text(
+                                'App Usage Access Needed',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          'Android requires special permission to monitor app usage and screen time. Tap below to enable Usage Access.',
+                          style: TextStyle(fontSize: 12, color: Colors.black87, height: 1.3),
+                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.amber.shade800,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            onPressed: () async {
+                              await usageProvider.requestUsageAccess();
+                            },
+                            icon: const Icon(Icons.settings_applications, size: 18),
+                            label: const Text('Grant App Usage Access'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
 
               // REAL GPS LOCATION SENSOR STATUS CARD
               Card(
@@ -240,7 +331,7 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
                           OutlinedButton.icon(
                             onPressed: () {
                               locationProvider.startChildLocationTracking(
-                                childId: authProvider.currentUser?.id,
+                                childId: authProvider.childId ?? authProvider.currentUser?.id,
                               );
                             },
                             icon: const Icon(Icons.security, size: 16),
@@ -314,28 +405,36 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
                 children: [
                   Expanded(
                     child: Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(14.0),
-                        child: Column(
-                          children: [
-                            const Icon(Icons.screen_search_desktop_outlined,
-                                color: AppColors.primary, size: 26),
-                            const SizedBox(height: 8),
-                            FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text(
-                                DateFormatter.formatMinutesToDuration(
-                                    usageProvider.totalScreenTimeMinutes),
-                                style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const ChildActivityScreen()),
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.all(14.0),
+                          child: Column(
+                            children: [
+                              const Icon(Icons.screen_search_desktop_outlined,
+                                  color: AppColors.primary, size: 26),
+                              const SizedBox(height: 8),
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  DateFormatter.formatMinutesToDuration(
+                                      usageProvider.totalScreenTimeMinutes),
+                                  style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 2),
-                            const FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text('Today Screen Time',
-                                  style: TextStyle(fontSize: 11, color: Colors.grey)),
-                            ),
-                          ],
+                              const SizedBox(height: 2),
+                              const FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text('Today Screen Time',
+                                    style: TextStyle(fontSize: 11, color: Colors.grey)),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -380,6 +479,75 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
                 ],
               ),
               const SizedBox(height: 16),
+
+              // TOP RECENT APPS SUMMARY
+              if (usageProvider.appUsages.isNotEmpty) ...[
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Row(
+                              children: [
+                                Icon(Icons.apps, color: AppColors.secondary, size: 20),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Top Apps Today',
+                                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => const ChildActivityScreen(),
+                                  ),
+                                );
+                              },
+                              child: const Text('View All', style: TextStyle(fontSize: 12)),
+                            ),
+                          ],
+                        ),
+                        const Divider(height: 16),
+                        ...usageProvider.appUsages.take(3).map((usage) => Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 14,
+                                backgroundColor: AppColors.secondary.withOpacity(0.12),
+                                child: const Icon(Icons.android, size: 16, color: AppColors.secondary),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  usage.appName,
+                                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              Text(
+                                DateFormatter.formatMinutesToDuration(usage.usageDuration),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.secondary,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
             ],
           ),
         ),

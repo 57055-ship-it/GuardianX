@@ -139,8 +139,8 @@ class LocationService {
 
   /// Stream continuous real GPS position updates from sensor
   Stream<LocationResult> getPositionStream({
-    int distanceFilterMeters = 10,
-    int timeIntervalSeconds = 15,
+    int distanceFilterMeters = 20,
+    int timeIntervalSeconds = 30,
   }) {
     late LocationSettings settings;
     if (defaultTargetPlatform == TargetPlatform.android) {

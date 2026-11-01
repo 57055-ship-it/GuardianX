@@ -27,12 +27,24 @@ class _ParentScreenTimeScreenState extends State<ParentScreenTimeScreen> {
     final usageProvider = Provider.of<UsageProvider>(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Digital Wellbeing & App Usage')),
-      body: usageProvider.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
+      appBar: AppBar(
+        title: const Text('Digital Wellbeing & App Usage'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Refresh',
+            onPressed: () => Provider.of<UsageProvider>(context, listen: false).fetchChildUsage(widget.childId),
+          ),
+        ],
+      ),
+      body: RefreshIndicator(
+        onRefresh: () => Provider.of<UsageProvider>(context, listen: false).fetchChildUsage(widget.childId),
+        child: usageProvider.isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Card(
@@ -72,13 +84,25 @@ class _ParentScreenTimeScreenState extends State<ParentScreenTimeScreen> {
                   ),
                   const SizedBox(height: 12),
                   if (usageProvider.appUsages.isEmpty)
-                    const Card(
+                    Card(
                       child: Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: Text(
-                          'No application usage data logged for today.\n\nNote: Detailed per-app usage breakdowns are supported on Android child devices. iOS child devices restrict individual app usage monitoring due to Apple platform privacy policies.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 12, color: Colors.grey),
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          children: [
+                            if (usageProvider.error != null) ...[
+                              Text(
+                                'Error fetching usage: ${usageProvider.error}',
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(color: AppColors.critical, fontSize: 13),
+                              ),
+                              const SizedBox(height: 8),
+                            ],
+                            const Text(
+                              'No application usage data logged for today.\n\nNote: Detailed per-app usage breakdowns are supported on Android child devices. Ensure the child device has granted App Usage Access in Android Settings.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 12, color: Colors.grey),
+                            ),
+                          ],
                         ),
                       ),
                     )
@@ -115,6 +139,7 @@ class _ParentScreenTimeScreenState extends State<ParentScreenTimeScreen> {
                 ],
               ),
             ),
+      ),
     );
   }
 }

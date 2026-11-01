@@ -1,3 +1,4 @@
+require('dotenv').config();
 const request = require('supertest');
 const mongoose = require('mongoose');
 const app = require('../src/app');
@@ -14,12 +15,14 @@ beforeAll(async () => {
   if (mongoose.connection.readyState === 0) {
     await mongoose.connect(mongoUri);
   }
+  await User.deleteMany({ email: /@guardianx\.com$/ });
+  await Tenant.deleteMany({ name: /Family/ });
 });
 
 afterAll(async () => {
-  if (mongoose.connection.db) {
-    await mongoose.connection.db.dropDatabase();
-  }
+  try {
+    await User.deleteMany({ email: /@guardianx\.com$/ });
+  } catch (_) {}
   await mongoose.connection.close();
 });
 

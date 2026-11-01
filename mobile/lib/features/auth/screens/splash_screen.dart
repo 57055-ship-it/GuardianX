@@ -21,10 +21,20 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void _checkAuth() async {
-    await Future.delayed(const Duration(seconds: 1));
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    // Give splash screen a minimum display time of 500ms
+    await Future.delayed(const Duration(milliseconds: 500));
     if (!mounted) return;
 
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    // Wait until AuthProvider completes loading session
+    int waitCount = 0;
+    while (mounted && (authProvider.status == AuthStatus.loading || authProvider.status == AuthStatus.uninitialized) && waitCount < 30) {
+      await Future.delayed(const Duration(milliseconds: 100));
+      waitCount++;
+    }
+    if (!mounted) return;
+
     if (authProvider.isAuthenticated) {
       if (authProvider.isChild) {
         Navigator.of(context).pushReplacement(

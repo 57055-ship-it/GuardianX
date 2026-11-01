@@ -66,7 +66,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => PairingProvider(pairingRepository)),
         ChangeNotifierProvider(create: (_) => LocationProvider(locationRepository)),
         ChangeNotifierProvider(create: (_) => GeofenceProvider(geofenceRepository)),
-        ChangeNotifierProvider(create: (_) => UsageProvider(usageRepository)),
+        ChangeNotifierProvider(create: (_) => UsageProvider(usageRepository, storageService)),
         ChangeNotifierProvider(create: (_) => AlertProvider(alertRepository)),
         ChangeNotifierProvider(create: (_) => SOSProvider(sosRepository)),
         ChangeNotifierProvider(create: (_) => RoutineProvider(routineRepository)),

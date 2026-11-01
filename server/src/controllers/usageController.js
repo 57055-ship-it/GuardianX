@@ -1,35 +1,165 @@
+const mongoose = require('mongoose');
 const AppUsage = require('../models/AppUsage');
 const ScreenTime = require('../models/ScreenTime');
 const Alert = require('../models/Alert');
+const ChildProfile = require('../models/ChildProfile');
 
-// POST /api/usage (Record app usage batch or single entry)
+// POST /api/usage/record (Record app usage batch or single entry)
 exports.recordAppUsage = async (req, res) => {
   try {
-    const { childId, packageName, appName, usageDuration, sessionCount, date } = req.body;
-    const targetChildId = childId || req.user.childId;
+    const { childId, packageName, appName, usageDuration, sessionCount, date, usages } = req.body;
+    let targetChildId = childId || (req.user && req.user.childId ? req.user.childId.toString() : null);
     const usageDate = date || new Date().toISOString().split('T')[0];
 
-    if (!targetChildId || !packageName || !appName || usageDuration === undefined) {
+    // Resolve canonical ChildProfile ID (whether passed as ChildProfile._id or child User._id)
+    const lookupIds = [];
+    if (targetChildId && mongoose.Types.ObjectId.isValid(targetChildId)) {
+      lookupIds.push(new mongoose.Types.ObjectId(targetChildId));
+    }
+    if (req.user && req.user.childId && mongoose.Types.ObjectId.isValid(req.user.childId)) {
+      lookupIds.push(new mongoose.Types.ObjectId(req.user.childId));
+    }
+    if (req.user && (req.user._id || req.user.id) && mongoose.Types.ObjectId.isValid(req.user._id || req.user.id)) {
+      lookupIds.push(new mongoose.Types.ObjectId(req.user._id || req.user.id));
+    }
+
+    if (lookupIds.length > 0) {
+      const childProfile = await ChildProfile.findOne({
+        tenantId: req.tenantId,
+        $or: [
+          { _id: { $in: lookupIds } },
+          { userId: { $in: lookupIds } }
+        ]
+      });
+      if (childProfile) {
+        targetChildId = childProfile._id.toString();
+      }
+    }
+
+    if (!targetChildId) {
       return res.status(400).json({
         success: false,
-        message: 'childId, packageName, appName, and usageDuration are required.'
+        message: 'childId is required.'
       });
     }
 
-    // Upsert app usage entry for the date
-    const appUsage = await AppUsage.findOneAndUpdate(
-      {
-        tenantId: req.tenantId,
-        childId: targetChildId,
-        packageName,
-        date: usageDate
-      },
-      {
-        $set: { appName },
-        $inc: { usageDuration: Number(usageDuration), sessionCount: Number(sessionCount || 1) }
-      },
-      { upsert: true, new: true }
-    );
+    if (!mongoose.Types.ObjectId.isValid(targetChildId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'childId must be a valid ObjectId.'
+      });
+    }
+
+    let recordedCount = 0;
+
+    // Handle batch usages array (snapshot of today's app usage stats from Android device)
+    if (Array.isArray(usages)) {
+      if (usages.length === 0) {
+        return res.status(200).json({
+          success: true,
+          message: 'No usage records to process.',
+          count: 0,
+          totalMinutes: 0
+        });
+      }
+
+      for (const item of usages) {
+        if (!item || typeof item !== 'object') {
+          console.warn('[usageController] Skipping invalid record: not an object');
+          continue;
+        }
+
+        const rawPkg = item.packageName;
+        if (!rawPkg || typeof rawPkg !== 'string' || !rawPkg.trim()) {
+          console.warn('[usageController] Skipping record: packageName is required and must be non-empty string');
+          continue;
+        }
+
+        const rawApp = item.appName;
+        if (!rawApp || typeof rawApp !== 'string' || !rawApp.trim()) {
+          console.warn(`[usageController] Skipping record (${rawPkg}): appName is required and must be non-empty string`);
+          continue;
+        }
+
+        const rawDuration = item.usageDuration !== undefined ? item.usageDuration : item.durationMinutes;
+        if (rawDuration === undefined || rawDuration === null) {
+          console.warn(`[usageController] Skipping record (${rawPkg}): usageDuration is required`);
+          continue;
+        }
+
+        const duration = Number(rawDuration);
+        if (isNaN(duration) || duration < 0) {
+          console.warn(`[usageController] Skipping record (${rawPkg}): usageDuration must be a non-negative number`);
+          continue;
+        }
+
+        await AppUsage.findOneAndUpdate(
+          {
+            tenantId: req.tenantId,
+            childId: targetChildId,
+            packageName: rawPkg.trim(),
+            date: usageDate
+          },
+          {
+            $set: {
+              appName: rawApp.trim(),
+              usageDuration: Math.round(duration),
+              sessionCount: Number(item.sessionCount || 1)
+            }
+          },
+          { upsert: true, new: true }
+        );
+        recordedCount++;
+      }
+    } else {
+      // Single entry mode validation
+      if (!packageName || typeof packageName !== 'string' || !packageName.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: 'packageName is required.'
+        });
+      }
+
+      if (!appName || typeof appName !== 'string' || !appName.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: 'appName is required.'
+        });
+      }
+
+      if (usageDuration === undefined || usageDuration === null) {
+        return res.status(400).json({
+          success: false,
+          message: 'usageDuration is required.'
+        });
+      }
+
+      const duration = Number(usageDuration);
+      if (isNaN(duration) || duration < 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'usageDuration must be a non-negative number.'
+        });
+      }
+
+      await AppUsage.findOneAndUpdate(
+        {
+          tenantId: req.tenantId,
+          childId: targetChildId,
+          packageName: packageName.trim(),
+          date: usageDate
+        },
+        {
+          $set: {
+            appName: appName.trim(),
+            usageDuration: Math.round(duration),
+            sessionCount: Number(sessionCount || 1)
+          }
+        },
+        { upsert: true, new: true }
+      );
+      recordedCount = 1;
+    }
 
     // Calculate updated total screen time for the day
     const allUsages = await AppUsage.find({
@@ -47,7 +177,7 @@ exports.recordAppUsage = async (req, res) => {
         date: usageDate
       },
       {
-        totalDuration: totalMinutes
+        $set: { totalDuration: totalMinutes }
       },
       { upsert: true, new: true }
     );
@@ -75,8 +205,9 @@ exports.recordAppUsage = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: 'App usage recorded.',
-      appUsage,
+      message: `App usage recorded successfully (${recordedCount} items).`,
+      count: recordedCount,
+      totalMinutes,
       screenTime
     });
   } catch (error) {
@@ -88,23 +219,82 @@ exports.recordAppUsage = async (req, res) => {
   }
 };
 
-// GET /api/usage/:childId
+// GET /api/usage/app-usage/:childId
 exports.getAppUsage = async (req, res) => {
   try {
     const { childId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(childId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'childId must be a valid ObjectId.'
+      });
+    }
+
+    // Resolve ChildProfile to match either ChildProfile._id or Child User._id
+    const childProfile = await ChildProfile.findOne({
+      tenantId: req.tenantId,
+      $or: [
+        { _id: childId },
+        { userId: childId }
+      ]
+    });
+
+    const candidateIds = [new mongoose.Types.ObjectId(childId)];
+    if (childProfile) {
+      if (!candidateIds.some(id => id.equals(childProfile._id))) {
+        candidateIds.push(childProfile._id);
+      }
+      if (childProfile.userId && !candidateIds.some(id => id.equals(childProfile.userId))) {
+        candidateIds.push(childProfile.userId);
+      }
+    }
+
     const date = req.query.date || new Date().toISOString().split('T')[0];
 
-    const usages = await AppUsage.find({
+    let usages = await AppUsage.find({
       tenantId: req.tenantId,
-      childId,
+      childId: { $in: candidateIds },
       date
     }).sort({ usageDuration: -1 });
 
+    // If no usages found for specific date, check latest available date for this child
+    let effectiveDate = date;
+    if (usages.length === 0 && !req.query.date) {
+      const latestUsage = await AppUsage.findOne({
+        tenantId: req.tenantId,
+        childId: { $in: candidateIds }
+      }).sort({ createdAt: -1 });
+
+      if (latestUsage && latestUsage.date) {
+        effectiveDate = latestUsage.date;
+        usages = await AppUsage.find({
+          tenantId: req.tenantId,
+          childId: { $in: candidateIds },
+          date: effectiveDate
+        }).sort({ usageDuration: -1 });
+      }
+    }
+
+    // Format normalized response so both mobile (usages / usageDuration)
+    // and web (appUsage / durationMinutes) consume seamlessly
+    const appUsage = usages.map((u) => ({
+      _id: u._id,
+      id: u._id,
+      appName: u.appName,
+      packageName: u.packageName,
+      durationMinutes: u.usageDuration,
+      usageDuration: u.usageDuration,
+      sessionCount: u.sessionCount,
+      date: u.date
+    }));
+
     return res.status(200).json({
       success: true,
-      date,
+      date: effectiveDate,
       count: usages.length,
-      usages
+      usages, // Mobile AppUsageModel contract
+      appUsage, // Web AppUsageItem contract
+      isIOSUnavailable: false
     });
   } catch (error) {
     return res.status(500).json({
@@ -115,22 +305,60 @@ exports.getAppUsage = async (req, res) => {
   }
 };
 
-// GET /api/screen-time/:childId
+// GET /api/usage/screen-time/:childId
 exports.getScreenTime = async (req, res) => {
   try {
     const { childId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(childId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'childId must be a valid ObjectId.'
+      });
+    }
+
+    const childProfile = await ChildProfile.findOne({
+      tenantId: req.tenantId,
+      $or: [
+        { _id: childId },
+        { userId: childId }
+      ]
+    });
+
+    const candidateIds = [new mongoose.Types.ObjectId(childId)];
+    if (childProfile) {
+      if (!candidateIds.some(id => id.equals(childProfile._id))) {
+        candidateIds.push(childProfile._id);
+      }
+      if (childProfile.userId && !candidateIds.some(id => id.equals(childProfile.userId))) {
+        candidateIds.push(childProfile.userId);
+      }
+    }
+
     const date = req.query.date || new Date().toISOString().split('T')[0];
 
-    const screenTime = await ScreenTime.findOne({
+    let screenTime = await ScreenTime.findOne({
       tenantId: req.tenantId,
-      childId,
+      childId: { $in: candidateIds },
       date
     });
+
+    let duration = screenTime ? screenTime.totalDuration : 0;
+    if (duration === 0) {
+      const usages = await AppUsage.find({
+        tenantId: req.tenantId,
+        childId: { $in: candidateIds },
+        date
+      });
+      if (usages.length > 0) {
+        duration = usages.reduce((acc, curr) => acc + (curr.usageDuration || 0), 0);
+      }
+    }
 
     return res.status(200).json({
       success: true,
       date,
-      totalDuration: screenTime ? screenTime.totalDuration : 0
+      totalDuration: duration, // Mobile UsageRepository contract
+      totalScreenTimeMinutes: duration // Web usageApi contract
     });
   } catch (error) {
     return res.status(500).json({

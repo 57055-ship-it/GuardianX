@@ -35,7 +35,7 @@ class _ChildShellState extends State<ChildShell> {
 
   void _startTracking() {
     final authProv = Provider.of<AuthProvider>(context, listen: false);
-    final childId = authProv.currentUser?.id;
+    final childId = authProv.childId ?? authProv.currentUser?.id;
     Provider.of<LocationProvider>(context, listen: false).startChildLocationTracking(childId: childId);
   }
 

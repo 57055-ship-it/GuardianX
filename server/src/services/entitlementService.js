@@ -234,11 +234,36 @@ async function checkFeatureAccess(tenantId, featureKey) {
   return { allowed: true };
 }
 
+/**
+ * Resolves location retention and daily update limits for a tenant.
+ */
+async function getLocationPlanPolicy(tenantId) {
+  try {
+    const { limits, planSlug, planName } = await getTenantPlanDetails(tenantId);
+    const retentionDays = limits?.locationHistoryDays ?? (planSlug === 'free' ? 1 : 7);
+    const maxDailyUpdates = limits?.maxLocationUpdates ?? (planSlug === 'free' ? 500 : 2000);
+    return {
+      retentionDays,
+      maxDailyUpdates,
+      planSlug,
+      planName
+    };
+  } catch (err) {
+    return {
+      retentionDays: 1,
+      maxDailyUpdates: 500,
+      planSlug: 'free',
+      planName: 'Free Plan'
+    };
+  }
+}
+
 module.exports = {
   getTenantPlanDetails,
   canCreateChild,
   canCreateSafeZone,
   canCreateDevice,
   checkFeatureAccess,
+  getLocationPlanPolicy,
   DEFAULT_FALLBACK_PLANS
 };

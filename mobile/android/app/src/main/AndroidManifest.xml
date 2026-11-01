@@ -26,6 +26,17 @@
     <!-- 7. Biometric & Face ID Authentication Permission -->
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
 
+    <!-- Queries for explicit system settings navigation -->
+    <queries>
+        <intent>
+            <action android:name="android.settings.USAGE_ACCESS_SETTINGS" />
+        </intent>
+        <intent>
+            <action android:name="android.settings.APPLICATION_DETAILS_SETTINGS" />
+            <data android:scheme="package" />
+        </intent>
+    </queries>
+
     <application
         android:label="guardianx"
         android:name="${applicationName}"

@@ -17,11 +17,16 @@ class AppUsageModel {
 
   factory AppUsageModel.fromJson(Map<String, dynamic> json) {
     return AppUsageModel(
-      id: json['_id'] ?? json['id'] ?? '',
+      id: (json['_id'] ?? json['id'] ?? '').toString(),
       packageName: json['packageName'] ?? '',
       appName: json['appName'] ?? '',
-      usageDuration: json['usageDuration'] ?? 0,
-      sessionCount: json['sessionCount'] ?? 1,
+      usageDuration: (json['usageDuration'] as num?)?.toInt() ??
+          (json['durationMinutes'] as num?)?.toInt() ??
+          int.tryParse(json['usageDuration']?.toString() ?? '') ??
+          0,
+      sessionCount: (json['sessionCount'] as num?)?.toInt() ??
+          int.tryParse(json['sessionCount']?.toString() ?? '') ??
+          1,
       date: json['date'] ?? '',
     );
   }

@@ -49,7 +49,6 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
     final childProvider = Provider.of<ChildProvider>(context);
     final alertProvider = Provider.of<AlertProvider>(context);
     final usageProvider = Provider.of<UsageProvider>(context);
-    final reportProvider = Provider.of<ReportProvider>(context);
 
     final selectedChild = childProvider.selectedChild;
 

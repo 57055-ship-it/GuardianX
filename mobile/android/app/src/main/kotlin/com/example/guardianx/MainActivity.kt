@@ -1,6 +1,139 @@
 package com.guardianx.app
 
 import io.flutter.embedding.android.FlutterFragmentActivity
+import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.MethodChannel
+import android.app.AppOpsManager
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
+import android.os.Process
+import android.provider.Settings
 
-class MainActivity : FlutterFragmentActivity()
+class MainActivity : FlutterFragmentActivity() {
+    private val USAGE_CHANNEL = "com.guardianx/usage_stats"
+    private val BLOCKER_CHANNEL = "com.guardianx/app_blocker"
 
+    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
+        super.configureFlutterEngine(flutterEngine)
+
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, USAGE_CHANNEL).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "hasUsagePermission" -> {
+                    result.success(checkUsageStatsPermission())
+                }
+                "openUsageSettings" -> {
+                    result.success(openUsageAccessSettings())
+                }
+                "openAppDetails" -> {
+                    result.success(openAppDetailsSettings())
+                }
+                "getAppLabel" -> {
+                    val pkg = call.argument<String>("packageName")
+                    if (pkg != null) {
+                        result.success(getAppLabel(pkg))
+                    } else {
+                        result.error("INVALID_ARGUMENT", "packageName is required", null)
+                    }
+                }
+                else -> {
+                    result.notImplemented()
+                }
+            }
+        }
+
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, BLOCKER_CHANNEL).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "requestPermissions" -> {
+                    result.success(openUsageAccessSettings())
+                }
+                "isAppBlockingEnabled" -> {
+                    result.success(true)
+                }
+                "setBlockedApps" -> {
+                    result.success(true)
+                }
+                "enablePrayerLock" -> {
+                    result.success(true)
+                }
+                else -> {
+                    result.notImplemented()
+                }
+            }
+        }
+    }
+
+    private fun checkUsageStatsPermission(): Boolean {
+        return try {
+            val appOps = getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
+            val mode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                appOps.unsafeCheckOpNoThrow(
+                    AppOpsManager.OPSTR_GET_USAGE_STATS,
+                    Process.myUid(),
+                    packageName
+                )
+            } else {
+                @Suppress("DEPRECATION")
+                appOps.checkOpNoThrow(
+                    AppOpsManager.OPSTR_GET_USAGE_STATS,
+                    Process.myUid(),
+                    packageName
+                )
+            }
+            mode == AppOpsManager.MODE_ALLOWED
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    private fun openUsageAccessSettings(): Boolean {
+        return try {
+            // ACTION_USAGE_ACCESS_SETTINGS opens the system screen titled 'Usage Access' / 'Apps with usage access'
+            val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            startActivity(intent)
+            true
+        } catch (e: Exception) {
+            try {
+                val fallback = Intent(Settings.ACTION_SETTINGS).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                startActivity(fallback)
+                true
+            } catch (e2: Exception) {
+                false
+            }
+        }
+    }
+
+    private fun openAppDetailsSettings(): Boolean {
+        return try {
+            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                data = Uri.parse("package:$packageName")
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            startActivity(intent)
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    private fun getAppLabel(pkgName: String): String? {
+        return try {
+            val pm = packageManager
+            val appInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                pm.getApplicationInfo(pkgName, PackageManager.ApplicationInfoFlags.of(0))
+            } else {
+                @Suppress("DEPRECATION")
+                pm.getApplicationInfo(pkgName, 0)
+            }
+            pm.getApplicationLabel(appInfo).toString()
+        } catch (e: Exception) {
+            null
+        }
+    }
+}

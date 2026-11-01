@@ -1,17 +1,14 @@
 import { apiClient } from './client';
-import { AppUsageRecord, AppUsageItem } from '../types';
+import { AppUsageItem } from '../types';
 
 export const usageApi = {
   getScreenTime: async (childId: string): Promise<{ totalScreenTimeMinutes: number; date: string }> => {
     try {
-      const res = await apiClient.get<{
-        success: boolean;
-        totalScreenTimeMinutes: number;
-        date: string;
-      }>(`/usage/screen-time/${childId}`);
+      const res = await apiClient.get<any>(`/usage/screen-time/${childId}`);
+      const duration = res.data?.totalScreenTimeMinutes ?? res.data?.totalDuration ?? 0;
       return {
-        totalScreenTimeMinutes: res.data.totalScreenTimeMinutes || 0,
-        date: res.data.date || new Date().toISOString().split('T')[0],
+        totalScreenTimeMinutes: Number(duration),
+        date: res.data?.date || new Date().toISOString().split('T')[0],
       };
     } catch {
       return { totalScreenTimeMinutes: 0, date: new Date().toISOString().split('T')[0] };
@@ -20,14 +17,17 @@ export const usageApi = {
 
   getAppUsage: async (childId: string): Promise<{ appUsage: AppUsageItem[]; isIOSUnavailable?: boolean }> => {
     try {
-      const res = await apiClient.get<{
-        success: boolean;
-        appUsage: AppUsageItem[];
-        isIOSUnavailable?: boolean;
-      }>(`/usage/app-usage/${childId}`);
+      const res = await apiClient.get<any>(`/usage/app-usage/${childId}`);
+      const rawList: any[] = res.data?.appUsage || res.data?.usages || [];
+      const appUsage: AppUsageItem[] = rawList.map((item) => ({
+        appName: item.appName || item.packageName || 'Unknown App',
+        packageName: item.packageName,
+        durationMinutes: Number(item.durationMinutes ?? item.usageDuration ?? 0),
+        sessionCount: item.sessionCount ?? 1,
+      }));
       return {
-        appUsage: res.data.appUsage || [],
-        isIOSUnavailable: res.data.isIOSUnavailable || false,
+        appUsage,
+        isIOSUnavailable: res.data?.isIOSUnavailable || false,
       };
     } catch {
       return { appUsage: [], isIOSUnavailable: true };
