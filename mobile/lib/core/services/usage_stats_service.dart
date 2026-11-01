@@ -3,6 +3,7 @@ import 'package:app_usage/app_usage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../utils/app_name_resolver.dart';
 
 class AppUsageData {
   final String packageName;
@@ -28,6 +29,7 @@ class AppUsageData {
 class UsageStatsService {
   static const MethodChannel _channel = MethodChannel('com.guardianx/usage_stats');
   static final Map<String, String> _appNameCache = {};
+  static final Map<String, Uint8List?> _appIconCache = {};
 
   /// Platform capability check for Android UsageStatsManager
   static bool get isPlatformSupported => !kIsWeb && Platform.isAndroid;
@@ -165,40 +167,32 @@ class UsageStatsService {
       } catch (_) {}
     }
 
-    final resolved = _resolveFriendlyName(pkg, rawAppName);
+    final resolved = AppNameResolver.resolve(pkg, rawAppName);
     _appNameCache[pkg] = resolved;
     return resolved;
   }
 
-  /// Resolve user-friendly app titles for popular Android packages
-  static String _resolveFriendlyName(String pkg, String appName) {
-    if (appName.isNotEmpty && appName != pkg && !appName.startsWith('com.')) {
-      return appName;
+  /// Fetch native application icon PNG bytes on Android
+  static Future<Uint8List?> getAppIconBytes(String packageName) async {
+    if (!isPlatformSupported) return null;
+    if (_appIconCache.containsKey(packageName)) {
+      return _appIconCache[packageName];
     }
-    final lower = pkg.toLowerCase();
-    if (lower.contains('youtube')) return 'YouTube';
-    if (lower.contains('whatsapp')) return 'WhatsApp';
-    if (lower.contains('chrome')) return 'Google Chrome';
-    if (lower.contains('instagram')) return 'Instagram';
-    if (lower.contains('facebook') && lower.contains('orca')) return 'Messenger';
-    if (lower.contains('facebook')) return 'Facebook';
-    if (lower.contains('tiktok') || lower.contains('musically')) return 'TikTok';
-    if (lower.contains('snapchat')) return 'Snapchat';
-    if (lower.contains('spotify')) return 'Spotify';
-    if (lower.contains('netflix')) return 'Netflix';
-    if (lower.contains('roblox')) return 'Roblox';
-    if (lower.contains('discord')) return 'Discord';
-    if (lower.contains('telegram')) return 'Telegram';
-    if (lower.contains('twitter') || lower.contains('.x.')) return 'X (Twitter)';
-    if (lower.contains('maps')) return 'Google Maps';
-    if (lower.contains('gmail') || lower.contains('.gm')) return 'Gmail';
-    if (lower.contains('play.games')) return 'Google Play Games';
-    if (lower.contains('vending')) return 'Google Play Store';
+    try {
+      final bytes = await _channel.invokeMethod<Uint8List>(
+        'getAppIcon',
+        {'packageName': packageName},
+      );
+      _appIconCache[packageName] = bytes;
+      return bytes;
+    } catch (_) {
+      _appIconCache[packageName] = null;
+      return null;
+    }
+  }
 
-    // Fallback: capitalize last segment of package name
-    final segments = pkg.split('.');
-    final last = segments.isNotEmpty ? segments.last : pkg;
-    if (last.isEmpty) return pkg;
-    return last.substring(0, 1).toUpperCase() + last.substring(1);
+  /// Synchronously retrieve cached app icon bytes if already loaded
+  static Uint8List? getCachedIconBytes(String packageName) {
+    return _appIconCache[packageName];
   }
 }

@@ -9,10 +9,12 @@ import '../../../core/services/device_service.dart';
 import '../../../core/services/location_service.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../core/services/usage_stats_service.dart';
+import '../../../core/utils/app_name_resolver.dart';
 import '../../../core/utils/date_formatter.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/location_provider.dart';
 import '../../../providers/usage_provider.dart';
+import '../../shared/widgets/app_icon_widget.dart';
 import '../../shared/widgets/status_badge.dart';
 import '../activity/child_activity_screen.dart';
 import '../sos/child_sos_screen.dart';
@@ -674,56 +676,68 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> with Widget
                         const Divider(height: 16),
                         ...usageProvider.appUsages.take(3).map((usage) {
                           final isBlocked = usage.isBlocked || usageProvider.isAppBlocked(usage.packageName);
+                          final resolvedName = AppNameResolver.resolve(usage.packageName, usage.appName);
                           return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4.0),
+                            padding: const EdgeInsets.symmetric(vertical: 6.0),
                             child: Row(
                               children: [
-                                CircleAvatar(
-                                  radius: 14,
-                                  backgroundColor: isBlocked
-                                      ? Colors.red.shade50
-                                      : AppColors.secondary.withOpacity(0.12),
-                                  child: Icon(
-                                    isBlocked ? Icons.lock : Icons.android,
-                                    size: 16,
-                                    color: isBlocked ? Colors.red.shade700 : AppColors.secondary,
-                                  ),
+                                AppIconWidget(
+                                  packageName: usage.packageName,
+                                  appName: resolvedName,
+                                  size: 32,
+                                  isBlocked: isBlocked,
                                 ),
                                 const SizedBox(width: 10),
                                 Expanded(
-                                  child: Row(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Flexible(
-                                        child: Text(
-                                          usage.appName,
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 13,
-                                            color: isBlocked ? Colors.red.shade900 : null,
-                                            decoration: isBlocked ? TextDecoration.lineThrough : null,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      if (isBlocked) ...[
-                                        const SizedBox(width: 6),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                          decoration: BoxDecoration(
-                                            color: Colors.red.shade600,
-                                            borderRadius: BorderRadius.circular(6),
-                                          ),
-                                          child: const Text(
-                                            'BLOCKED',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 9,
-                                              fontWeight: FontWeight.bold,
-                                              letterSpacing: 0.5,
+                                      Row(
+                                        children: [
+                                          Flexible(
+                                            child: Text(
+                                              resolvedName,
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 13,
+                                                color: isBlocked ? Colors.red.shade900 : null,
+                                                decoration: isBlocked ? TextDecoration.lineThrough : null,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
                                             ),
                                           ),
+                                          if (isBlocked) ...[
+                                            const SizedBox(width: 6),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                              decoration: BoxDecoration(
+                                                color: Colors.red.shade600,
+                                                borderRadius: BorderRadius.circular(4),
+                                              ),
+                                              child: const Text(
+                                                'BLOCKED',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 8,
+                                                  fontWeight: FontWeight.bold,
+                                                  letterSpacing: 0.5,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        usage.packageName,
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          color: isBlocked ? Colors.red.shade700 : Colors.grey.shade600,
+                                          fontWeight: isBlocked ? FontWeight.w500 : FontWeight.normal,
                                         ),
-                                      ],
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ],
                                   ),
                                 ),

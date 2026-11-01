@@ -3,6 +3,7 @@ const AppUsage = require('../models/AppUsage');
 const Alert = require('../models/Alert');
 const SOSEvent = require('../models/SOSEvent');
 const RoutineCompletion = require('../models/RoutineCompletion');
+const ChildProfile = require('../models/ChildProfile');
 
 exports.getDailyReport = async (req, res) => {
   try {
@@ -13,47 +14,65 @@ exports.getDailyReport = async (req, res) => {
       return res.status(400).json({ success: false, message: 'childId query param required.' });
     }
 
+    const childProfile = await ChildProfile.findOne({
+      tenantId: req.tenantId,
+      $or: [
+        { _id: childId },
+        { userId: childId }
+      ]
+    });
+
+    const candidateIds = [childId];
+    if (childProfile) {
+      if (!candidateIds.some(id => id.toString() === childProfile._id.toString())) candidateIds.push(childProfile._id);
+      if (childProfile.userId && !candidateIds.some(id => id.toString() === childProfile.userId.toString())) candidateIds.push(childProfile.userId);
+    }
+
     const screenTimeDoc = await ScreenTime.findOne({
       tenantId: req.tenantId,
-      childId,
+      childId: { $in: candidateIds },
       date
     });
 
     const usages = await AppUsage.find({
       tenantId: req.tenantId,
-      childId,
+      childId: { $in: candidateIds },
       date
     }).sort({ usageDuration: -1 });
 
     const mostUsedApp = usages.length > 0 ? usages[0] : null;
 
-    const startOfDay = new Date(date);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(date);
-    endOfDay.setHours(23, 59, 59, 999);
+    const startOfDay = new Date(Math.min(
+      new Date(`${date}T00:00:00.000Z`).getTime(),
+      new Date(date).setHours(0, 0, 0, 0)
+    ));
+    const endOfDay = new Date(Math.max(
+      new Date(`${date}T23:59:59.999Z`).getTime(),
+      new Date(date).setHours(23, 59, 59, 999)
+    ));
 
     const alertsCount = await Alert.countDocuments({
       tenantId: req.tenantId,
-      childId,
+      childId: { $in: candidateIds },
       createdAt: { $gte: startOfDay, $lte: endOfDay }
     });
 
     const safeZoneEvents = await Alert.countDocuments({
       tenantId: req.tenantId,
-      childId,
+      childId: { $in: candidateIds },
       type: { $in: ['geofence_entered', 'geofence_exited'] },
       createdAt: { $gte: startOfDay, $lte: endOfDay }
     });
 
     const sosCount = await SOSEvent.countDocuments({
       tenantId: req.tenantId,
-      childId,
+      childId: { $in: candidateIds },
       timestamp: { $gte: startOfDay, $lte: endOfDay }
     });
 
     const routinesCompleted = await RoutineCompletion.countDocuments({
       tenantId: req.tenantId,
-      childId,
+      childId: { $in: candidateIds },
       date,
       completionStatus: 'completed'
     });

@@ -32,6 +32,9 @@
     <!-- 9. Boot Completed to resume protection service on phone reboot -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
+    <!-- 10. Query all packages to resolve exact application labels and extract native icons -->
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" tools:ignore="QueryAllPackagesPermission" />
+
     <!-- Queries for explicit system settings navigation -->
     <queries>
         <intent>

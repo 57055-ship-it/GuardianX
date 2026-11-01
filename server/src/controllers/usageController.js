@@ -3,6 +3,7 @@ const AppUsage = require('../models/AppUsage');
 const ScreenTime = require('../models/ScreenTime');
 const Alert = require('../models/Alert');
 const ChildProfile = require('../models/ChildProfile');
+const { resolveAppName } = require('../utils/appNameResolver');
 
 // POST /api/usage/record (Record app usage batch or single entry)
 exports.recordAppUsage = async (req, res) => {
@@ -93,6 +94,8 @@ exports.recordAppUsage = async (req, res) => {
           continue;
         }
 
+        const canonicalAppName = resolveAppName(rawPkg, rawApp);
+
         await AppUsage.findOneAndUpdate(
           {
             tenantId: req.tenantId,
@@ -102,7 +105,7 @@ exports.recordAppUsage = async (req, res) => {
           },
           {
             $set: {
-              appName: rawApp.trim(),
+              appName: canonicalAppName,
               usageDuration: Math.round(duration),
               sessionCount: Number(item.sessionCount || 1)
             }
@@ -142,6 +145,8 @@ exports.recordAppUsage = async (req, res) => {
         });
       }
 
+      const canonicalAppName = resolveAppName(packageName, appName);
+
       await AppUsage.findOneAndUpdate(
         {
           tenantId: req.tenantId,
@@ -151,7 +156,7 @@ exports.recordAppUsage = async (req, res) => {
         },
         {
           $set: {
-            appName: appName.trim(),
+            appName: canonicalAppName,
             usageDuration: Math.round(duration),
             sessionCount: Number(sessionCount || 1)
           }
@@ -283,20 +288,24 @@ exports.getAppUsage = async (req, res) => {
 
     // Format normalized response so both mobile (usages / usageDuration)
     // and web (appUsage / durationMinutes) consume seamlessly
-    const appUsage = usages.map((u) => ({
-      _id: u._id,
-      id: u._id,
-      appName: u.appName,
-      packageName: u.packageName,
-      durationMinutes: u.usageDuration,
-      usageDuration: u.usageDuration,
-      sessionCount: u.sessionCount,
-      date: u.date,
-      isBlocked: blockedSet.has(u.packageName)
-    }));
+    const appUsage = usages.map((u) => {
+      const canonicalName = resolveAppName(u.packageName, u.appName);
+      return {
+        _id: u._id,
+        id: u._id,
+        appName: canonicalName,
+        packageName: u.packageName,
+        durationMinutes: u.usageDuration,
+        usageDuration: u.usageDuration,
+        sessionCount: u.sessionCount,
+        date: u.date,
+        isBlocked: blockedSet.has(u.packageName)
+      };
+    });
 
     const enrichedUsages = usages.map((u) => {
       const obj = typeof u.toObject === 'function' ? u.toObject() : { ...u };
+      obj.appName = resolveAppName(u.packageName, u.appName);
       obj.isBlocked = blockedSet.has(u.packageName);
       return obj;
     });

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/utils/app_name_resolver.dart';
 import '../../../core/utils/date_formatter.dart';
 import '../../../models/app_usage_model.dart';
 import '../../../providers/usage_provider.dart';
+import '../../shared/widgets/app_icon_widget.dart';
 
 class ParentScreenTimeScreen extends StatefulWidget {
   final String childId;
@@ -240,6 +242,7 @@ class _ParentScreenTimeScreenState extends State<ParentScreenTimeScreen> {
                       itemBuilder: (context, index) {
                         final usage = displayedUsages[index];
                         final isBlocked = usage.isBlocked;
+                        final resolvedName = AppNameResolver.resolve(usage.packageName, usage.appName);
 
                         return Card(
                           margin: const EdgeInsets.only(bottom: 8),
@@ -253,15 +256,11 @@ class _ParentScreenTimeScreenState extends State<ParentScreenTimeScreen> {
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                             child: Row(
                               children: [
-                                CircleAvatar(
-                                  backgroundColor: isBlocked
-                                      ? AppColors.critical.withOpacity(0.15)
-                                      : AppColors.primary.withOpacity(0.15),
-                                  child: Icon(
-                                    isBlocked ? Icons.block : Icons.android,
-                                    color: isBlocked ? AppColors.critical : AppColors.primary,
-                                    size: 20,
-                                  ),
+                                AppIconWidget(
+                                  packageName: usage.packageName,
+                                  appName: resolvedName,
+                                  size: 42,
+                                  isBlocked: isBlocked,
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
@@ -272,7 +271,7 @@ class _ParentScreenTimeScreenState extends State<ParentScreenTimeScreen> {
                                         children: [
                                           Flexible(
                                             child: Text(
-                                              usage.appName,
+                                              resolvedName,
                                               style: TextStyle(
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 15,

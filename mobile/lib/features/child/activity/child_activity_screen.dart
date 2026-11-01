@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/usage_stats_service.dart';
+import '../../../core/utils/app_name_resolver.dart';
 import '../../../core/utils/date_formatter.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/usage_provider.dart';
+import '../../shared/widgets/app_icon_widget.dart';
 
 class ChildActivityScreen extends StatefulWidget {
   const ChildActivityScreen({super.key});
@@ -280,6 +282,7 @@ class _ChildActivityScreenState extends State<ChildActivityScreen> with WidgetsB
                   itemBuilder: (context, index) {
                     final item = usageProvider.appUsages[index];
                     final isBlocked = item.isBlocked || usageProvider.isAppBlocked(item.packageName);
+                    final resolvedName = AppNameResolver.resolve(item.packageName, item.appName);
 
                     return Card(
                       margin: const EdgeInsets.only(bottom: 8),
@@ -292,20 +295,17 @@ class _ChildActivityScreenState extends State<ChildActivityScreen> with WidgetsB
                         ),
                       ),
                       child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: isBlocked
-                              ? Colors.red.shade100
-                              : AppColors.secondary.withOpacity(0.15),
-                          child: Icon(
-                            isBlocked ? Icons.lock : Icons.android,
-                            color: isBlocked ? Colors.red.shade700 : AppColors.secondary,
-                          ),
+                        leading: AppIconWidget(
+                          packageName: item.packageName,
+                          appName: resolvedName,
+                          size: 42,
+                          isBlocked: isBlocked,
                         ),
                         title: Row(
                           children: [
                             Flexible(
                               child: Text(
-                                item.appName,
+                                resolvedName,
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: isBlocked ? Colors.red.shade900 : null,
@@ -336,13 +336,11 @@ class _ChildActivityScreenState extends State<ChildActivityScreen> with WidgetsB
                           ],
                         ),
                         subtitle: Text(
-                          isBlocked
-                              ? 'Access restricted by parent'
-                              : item.packageName,
+                          item.packageName,
                           style: TextStyle(
                             fontSize: 11,
-                            color: isBlocked ? Colors.red.shade700 : Colors.grey,
-                            fontWeight: isBlocked ? FontWeight.w600 : FontWeight.normal,
+                            color: isBlocked ? Colors.red.shade700 : Colors.grey.shade600,
+                            fontWeight: isBlocked ? FontWeight.w500 : FontWeight.normal,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
