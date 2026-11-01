@@ -275,6 +275,12 @@ exports.getAppUsage = async (req, res) => {
       }
     }
 
+    // Check blocked apps set from ChildProfile
+    const blockedSet = new Set(
+      ((childProfile && Array.isArray(childProfile.blockedApps)) ? childProfile.blockedApps : [])
+        .map(b => b.packageName)
+    );
+
     // Format normalized response so both mobile (usages / usageDuration)
     // and web (appUsage / durationMinutes) consume seamlessly
     const appUsage = usages.map((u) => ({
@@ -285,21 +291,164 @@ exports.getAppUsage = async (req, res) => {
       durationMinutes: u.usageDuration,
       usageDuration: u.usageDuration,
       sessionCount: u.sessionCount,
-      date: u.date
+      date: u.date,
+      isBlocked: blockedSet.has(u.packageName)
     }));
+
+    const enrichedUsages = usages.map((u) => {
+      const obj = typeof u.toObject === 'function' ? u.toObject() : { ...u };
+      obj.isBlocked = blockedSet.has(u.packageName);
+      return obj;
+    });
 
     return res.status(200).json({
       success: true,
       date: effectiveDate,
       count: usages.length,
-      usages, // Mobile AppUsageModel contract
+      usages: enrichedUsages, // Mobile AppUsageModel contract
       appUsage, // Web AppUsageItem contract
+      blockedApps: childProfile?.blockedApps || [],
       isIOSUnavailable: false
     });
   } catch (error) {
     return res.status(500).json({
       success: false,
       message: 'Failed to fetch app usage.',
+      error: error.message
+    });
+  }
+};
+
+// POST /api/usage/block-app (Block or unblock an app for a child)
+exports.toggleBlockApp = async (req, res) => {
+  try {
+    const { childId, packageName, appName, isBlocked } = req.body;
+    if (!childId || !mongoose.Types.ObjectId.isValid(childId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid childId is required.'
+      });
+    }
+    if (!packageName || typeof packageName !== 'string' || !packageName.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'packageName is required.'
+      });
+    }
+
+    const trimmedPkg = packageName.trim();
+    const friendlyName = (appName || trimmedPkg).trim();
+
+    const childProfile = await ChildProfile.findOne({
+      tenantId: req.tenantId,
+      $or: [
+        { _id: childId },
+        { userId: childId }
+      ]
+    });
+
+    if (!childProfile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Child profile not found.'
+      });
+    }
+
+    if (!Array.isArray(childProfile.blockedApps)) {
+      childProfile.blockedApps = [];
+    }
+
+    const shouldBlock = isBlocked === true || isBlocked === 'true';
+
+    if (shouldBlock) {
+      const exists = childProfile.blockedApps.some((b) => b.packageName === trimmedPkg);
+      if (!exists) {
+        childProfile.blockedApps.push({
+          packageName: trimmedPkg,
+          appName: friendlyName,
+          blockedAt: new Date()
+        });
+      }
+      await AppUsage.updateMany(
+        { tenantId: req.tenantId, childId: childProfile._id, packageName: trimmedPkg },
+        { $set: { isBlocked: true } }
+      );
+
+      // Create an Alert for the family
+      await Alert.create({
+        tenantId: req.tenantId,
+        childId: childProfile._id,
+        type: 'app_blocked',
+        title: 'App Blocked by Parent',
+        message: `${friendlyName} has been blocked for ${childProfile.name}.`,
+        severity: 'info'
+      });
+    } else {
+      childProfile.blockedApps = childProfile.blockedApps.filter(
+        (b) => b.packageName !== trimmedPkg
+      );
+      await AppUsage.updateMany(
+        { tenantId: req.tenantId, childId: childProfile._id, packageName: trimmedPkg },
+        { $set: { isBlocked: false } }
+      );
+    }
+
+    await childProfile.save();
+
+    return res.status(200).json({
+      success: true,
+      message: shouldBlock
+        ? `${friendlyName} is now blocked.`
+        : `${friendlyName} has been unblocked.`,
+      packageName: trimmedPkg,
+      appName: friendlyName,
+      isBlocked: shouldBlock,
+      blockedApps: childProfile.blockedApps
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to update app blocking status.',
+      error: error.message
+    });
+  }
+};
+
+// GET /api/usage/blocked-apps/:childId
+exports.getBlockedApps = async (req, res) => {
+  try {
+    const { childId } = req.params;
+    if (!childId || !mongoose.Types.ObjectId.isValid(childId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid childId is required.'
+      });
+    }
+
+    const childProfile = await ChildProfile.findOne({
+      tenantId: req.tenantId,
+      $or: [
+        { _id: childId },
+        { userId: childId }
+      ]
+    });
+
+    if (!childProfile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Child profile not found.'
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      count: (childProfile.blockedApps || []).length,
+      blockedApps: childProfile.blockedApps || []
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch blocked apps.',
       error: error.message
     });
   }

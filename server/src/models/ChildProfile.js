@@ -35,7 +35,23 @@ const ChildProfileSchema = new mongoose.Schema(
       type: String,
       enum: ['unpaired', 'paired', 'disabled'],
       default: 'unpaired'
-    }
+    },
+    blockedApps: [
+      {
+        packageName: {
+          type: String,
+          required: true
+        },
+        appName: {
+          type: String,
+          required: true
+        },
+        blockedAt: {
+          type: Date,
+          default: Date.now
+        }
+      }
+    ]
   },
   { timestamps: true }
 );

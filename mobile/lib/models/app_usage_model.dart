@@ -5,6 +5,7 @@ class AppUsageModel {
   final int usageDuration; // in minutes
   final int sessionCount;
   final String date;
+  final bool isBlocked;
 
   AppUsageModel({
     required this.id,
@@ -13,7 +14,28 @@ class AppUsageModel {
     required this.usageDuration,
     required this.sessionCount,
     required this.date,
+    this.isBlocked = false,
   });
+
+  AppUsageModel copyWith({
+    String? id,
+    String? packageName,
+    String? appName,
+    int? usageDuration,
+    int? sessionCount,
+    String? date,
+    bool? isBlocked,
+  }) {
+    return AppUsageModel(
+      id: id ?? this.id,
+      packageName: packageName ?? this.packageName,
+      appName: appName ?? this.appName,
+      usageDuration: usageDuration ?? this.usageDuration,
+      sessionCount: sessionCount ?? this.sessionCount,
+      date: date ?? this.date,
+      isBlocked: isBlocked ?? this.isBlocked,
+    );
+  }
 
   factory AppUsageModel.fromJson(Map<String, dynamic> json) {
     return AppUsageModel(
@@ -28,6 +50,17 @@ class AppUsageModel {
           int.tryParse(json['sessionCount']?.toString() ?? '') ??
           1,
       date: json['date'] ?? '',
+      isBlocked: json['isBlocked'] == true || json['isBlocked'] == 'true',
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'packageName': packageName,
+        'appName': appName,
+        'usageDuration': usageDuration,
+        'sessionCount': sessionCount,
+        'date': date,
+        'isBlocked': isBlocked,
+      };
 }

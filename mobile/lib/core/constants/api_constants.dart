@@ -38,6 +38,8 @@ class ApiConstants {
   static const String recordUsage = '/usage/record';
   static const String appUsage = '/usage/app-usage';
   static const String screenTime = '/usage/screen-time';
+  static const String blockApp = '/usage/block-app';
+  static const String blockedApps = '/usage/blocked-apps';
 
   // SOS & Alerts
   static const String sos = '/sos';

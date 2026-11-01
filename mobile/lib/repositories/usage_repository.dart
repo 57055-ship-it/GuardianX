@@ -139,4 +139,40 @@ class UsageRepository {
       return 0;
     }
   }
+
+  /// Block or unblock an application for a child device
+  Future<bool> toggleBlockApp({
+    required String childId,
+    required String packageName,
+    required String appName,
+    required bool isBlocked,
+  }) async {
+    try {
+      final response = await _apiClient.post(
+        ApiConstants.blockApp,
+        body: {
+          'childId': childId,
+          'packageName': packageName,
+          'appName': appName,
+          'isBlocked': isBlocked,
+        },
+      );
+      return response['success'] == true;
+    } catch (e) {
+      debugPrint('[UsageRepository] toggleBlockApp failed for $packageName: $e');
+      return false;
+    }
+  }
+
+  /// Fetch list of currently blocked applications for a child device
+  Future<List<Map<String, dynamic>>> getBlockedApps(String childId) async {
+    try {
+      final response = await _apiClient.get('${ApiConstants.blockedApps}/$childId');
+      final List list = response['blockedApps'] ?? [];
+      return list.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+    } catch (e) {
+      debugPrint('[UsageRepository] getBlockedApps failed for childId=$childId: $e');
+      return [];
+    }
+  }
 }

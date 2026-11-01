@@ -19,10 +19,12 @@ class UsageProvider with ChangeNotifier {
   int _consecutiveErrorCount = 0;
   String? _lastLoggedErrorMessage;
   DateTime? _lastSyncAttemptTime;
+  List<String> _blockedPackages = [];
 
   UsageProvider(this._usageRepository, [this._storageService]);
 
   List<AppUsageModel> get appUsages => _appUsages;
+  List<String> get blockedPackages => _blockedPackages;
   int get totalScreenTimeMinutes => _totalScreenTimeMinutes;
   bool get isLoading => _isLoading;
   String? get error => _error;
@@ -30,6 +32,8 @@ class UsageProvider with ChangeNotifier {
   DateTime? get lastSyncTime => _lastSyncTime;
   String? get lastSyncedSignature => _lastSyncedSignature;
   int get consecutiveErrorCount => _consecutiveErrorCount;
+
+  bool isAppBlocked(String packageName) => _blockedPackages.contains(packageName);
 
   /// Check whether Android Usage Access permission has been granted
   Future<bool> checkPermission() async {
@@ -55,12 +59,60 @@ class UsageProvider with ChangeNotifier {
       final todayStr = DateTime.now().toIso8601String().split('T')[0];
       _appUsages = await _usageRepository.getAppUsage(childId, date: todayStr);
       _totalScreenTimeMinutes = await _usageRepository.getScreenTime(childId, date: todayStr);
+      _blockedPackages = _appUsages
+          .where((u) => u.isBlocked)
+          .map((u) => u.packageName)
+          .toList();
     } catch (e) {
       _error = e.toString();
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  /// Toggle blocking for a specific package on a child device
+  Future<bool> toggleBlockApp({
+    required String childId,
+    required String packageName,
+    required String appName,
+    required bool isBlocked,
+  }) async {
+    final prevBlocked = List<String>.from(_blockedPackages);
+    final prevUsages = List<AppUsageModel>.from(_appUsages);
+
+    if (isBlocked) {
+      if (!_blockedPackages.contains(packageName)) {
+        _blockedPackages.add(packageName);
+      }
+    } else {
+      _blockedPackages.remove(packageName);
+    }
+
+    _appUsages = _appUsages.map((u) {
+      if (u.packageName == packageName) {
+        return u.copyWith(isBlocked: isBlocked);
+      }
+      return u;
+    }).toList();
+    notifyListeners();
+
+    final success = await _usageRepository.toggleBlockApp(
+      childId: childId,
+      packageName: packageName,
+      appName: appName,
+      isBlocked: isBlocked,
+    );
+
+    if (!success) {
+      // Revert if API call fails
+      _blockedPackages = prevBlocked;
+      _appUsages = prevUsages;
+      notifyListeners();
+      return false;
+    }
+
+    return true;
   }
 
   /// Sync real Android UsageStatsManager data to backend

@@ -293,4 +293,63 @@ describe('Usage Synchronization API Tests', () => {
       expect(res.body.totalScreenTimeMinutes).toBe(37);
     });
   });
+
+  describe('App Blocking (POST /api/usage/block-app & GET /api/usage/blocked-apps)', () => {
+    test('Parent should be able to block an app for the child', async () => {
+      const res = await request(app)
+        .post('/api/usage/block-app')
+        .set('Authorization', `Bearer ${parentToken}`)
+        .send({
+          childId: childProfileId,
+          packageName: 'com.android.chrome',
+          appName: 'Google Chrome',
+          isBlocked: true
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.isBlocked).toBe(true);
+      expect(res.body.packageName).toBe('com.android.chrome');
+      expect(res.body.blockedApps.some((b) => b.packageName === 'com.android.chrome')).toBe(true);
+    });
+
+    test('getAppUsage should reflect isBlocked: true on blocked app', async () => {
+      const res = await request(app)
+        .get(`/api/usage/app-usage/${childProfileId}?date=${testDate}`)
+        .set('Authorization', `Bearer ${parentToken}`);
+
+      expect(res.status).toBe(200);
+      const chrome = res.body.usages.find((u) => u.packageName === 'com.android.chrome');
+      expect(chrome).toBeDefined();
+      expect(chrome.isBlocked).toBe(true);
+    });
+
+    test('getBlockedApps should return list containing blocked package', async () => {
+      const res = await request(app)
+        .get(`/api/usage/blocked-apps/${childProfileId}`)
+        .set('Authorization', `Bearer ${parentToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.count).toBe(1);
+      expect(res.body.blockedApps[0].packageName).toBe('com.android.chrome');
+    });
+
+    test('Parent should be able to unblock an app for the child', async () => {
+      const res = await request(app)
+        .post('/api/usage/block-app')
+        .set('Authorization', `Bearer ${parentToken}`)
+        .send({
+          childId: childProfileId,
+          packageName: 'com.android.chrome',
+          appName: 'Google Chrome',
+          isBlocked: false
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.isBlocked).toBe(false);
+      expect(res.body.blockedApps.some((b) => b.packageName === 'com.android.chrome')).toBe(false);
+    });
+  });
 });

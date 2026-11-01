@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:guardianx/core/services/api_client.dart';
 import 'package:guardianx/core/services/storage_service.dart';
 import 'package:guardianx/core/services/usage_stats_service.dart';
+import 'package:guardianx/models/app_usage_model.dart';
 import 'package:guardianx/providers/usage_provider.dart';
 import 'package:guardianx/repositories/usage_repository.dart';
 
@@ -203,6 +204,54 @@ void main() {
     test('Identifies and tracks consecutive errors to prevent log flooding', () {
       final provider = UsageProvider(usageRepository, storageService);
       expect(provider.consecutiveErrorCount, equals(0));
+    });
+
+    test('AppUsageModel handles isBlocked property and copyWith correctly', () {
+      final unblocked = AppUsageModel(
+        id: '1',
+        packageName: 'com.android.chrome',
+        appName: 'Chrome',
+        usageDuration: 15,
+        sessionCount: 1,
+        date: '2026-11-01',
+      );
+      expect(unblocked.isBlocked, isFalse);
+
+      final blocked = unblocked.copyWith(isBlocked: true);
+      expect(blocked.isBlocked, isTrue);
+      expect(blocked.appName, equals('Chrome'));
+
+      final fromJson = AppUsageModel.fromJson({
+        'id': '2',
+        'packageName': 'com.tiktok',
+        'appName': 'TikTok',
+        'usageDuration': 30,
+        'isBlocked': true,
+      });
+      expect(fromJson.isBlocked, isTrue);
+    });
+
+    test('UsageProvider updates blocked status optimistically', () async {
+      final provider = UsageProvider(usageRepository, storageService);
+      expect(provider.isAppBlocked('com.android.chrome'), isFalse);
+
+      final res = await provider.toggleBlockApp(
+        childId: '6ae72a9e94e5e0e0a91a9237',
+        packageName: 'com.android.chrome',
+        appName: 'Chrome',
+        isBlocked: true,
+      );
+      expect(res, isTrue);
+      expect(provider.isAppBlocked('com.android.chrome'), isTrue);
+
+      final unblockRes = await provider.toggleBlockApp(
+        childId: '6ae72a9e94e5e0e0a91a9237',
+        packageName: 'com.android.chrome',
+        appName: 'Chrome',
+        isBlocked: false,
+      );
+      expect(unblockRes, isTrue);
+      expect(provider.isAppBlocked('com.android.chrome'), isFalse);
     });
   });
 }

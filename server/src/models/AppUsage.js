@@ -31,6 +31,10 @@ const AppUsageSchema = new mongoose.Schema(
       type: Number,
       default: 1
     },
+    isBlocked: {
+      type: Boolean,
+      default: false
+    },
     date: {
       type: String, // YYYY-MM-DD format for easy daily aggregation
       required: true,

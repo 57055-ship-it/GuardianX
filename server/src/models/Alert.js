@@ -24,7 +24,8 @@ const AlertSchema = new mongoose.Schema(
         'device_offline',
         'screen_time_threshold',
         'routine_reminder',
-        'routine_completed'
+        'routine_completed',
+        'app_blocked'
       ],
       required: true
     },
