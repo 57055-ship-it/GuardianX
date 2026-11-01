@@ -263,6 +263,67 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> with Widget
                 const SizedBox(height: 16),
               ],
 
+              // OVERLAY (APPEAR ON TOP) PERMISSION WARNING BANNER IF NEEDED
+              if (UsageStatsService.isPlatformSupported &&
+                  usageProvider.hasPermission &&
+                  !usageProvider.hasOverlayPermission) ...[
+                Card(
+                  color: Colors.blue.shade50,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: BorderSide(color: Colors.blue.shade300, width: 1.2),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.layers, color: Colors.blue.shade800, size: 24),
+                            const SizedBox(width: 10),
+                            const Expanded(
+                              child: Text(
+                                'Appear on Top Permission Needed',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          'To display the restriction screen over apps blocked by your parent, please allow GuardianX to Appear on top.',
+                          style: TextStyle(fontSize: 12, color: Colors.black87, height: 1.3),
+                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue.shade800,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            onPressed: () async {
+                              await usageProvider.requestOverlayPermission();
+                            },
+                            icon: const Icon(Icons.security, size: 18),
+                            label: const Text('Enable Appear on Top'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+
               // REAL GPS LOCATION SENSOR STATUS CARD
               Card(
                 child: Padding(

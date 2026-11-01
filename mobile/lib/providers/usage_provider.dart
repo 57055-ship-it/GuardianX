@@ -16,6 +16,7 @@ class UsageProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   bool _hasPermission = false;
+  bool _hasOverlayPermission = false;
   DateTime? _lastSyncTime;
   String? _lastSyncedSignature;
   int _consecutiveErrorCount = 0;
@@ -33,15 +34,19 @@ class UsageProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
   bool get hasPermission => _hasPermission;
+  bool get hasOverlayPermission => _hasOverlayPermission;
   DateTime? get lastSyncTime => _lastSyncTime;
   String? get lastSyncedSignature => _lastSyncedSignature;
   int get consecutiveErrorCount => _consecutiveErrorCount;
 
   bool isAppBlocked(String packageName) => _blockedPackages.contains(packageName);
 
-  /// Check whether Android Usage Access permission has been granted
+  /// Check whether Android Usage Access and Overlay permissions have been granted
   Future<bool> checkPermission() async {
     _hasPermission = await _usageStatsService.hasUsagePermission();
+    if (AppBlockerNativeService.isPlatformSupported) {
+      _hasOverlayPermission = await _appBlockerService.hasOverlayPermission();
+    }
     notifyListeners();
     return _hasPermission;
   }
@@ -53,14 +58,14 @@ class UsageProvider with ChangeNotifier {
     return success;
   }
 
-  /// Check whether overlay (Appear on top) permission is granted
-  Future<bool> hasOverlayPermission() async {
-    return await _appBlockerService.hasOverlayPermission();
-  }
-
   /// Open Android System Settings to grant Appear on top permission
   Future<bool> requestOverlayPermission() async {
-    return await _appBlockerService.requestOverlayPermission();
+    final success = await _appBlockerService.requestOverlayPermission();
+    if (AppBlockerNativeService.isPlatformSupported) {
+      _hasOverlayPermission = await _appBlockerService.hasOverlayPermission();
+    }
+    notifyListeners();
+    return success;
   }
 
   /// Sync list of blocked packages with native Android Blocker
