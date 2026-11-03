@@ -4,6 +4,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/services/usage_stats_service.dart';
 import '../../../core/utils/app_name_resolver.dart';
 import '../../../core/utils/date_formatter.dart';
+import '../../../models/app_usage_model.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/usage_provider.dart';
 import '../../shared/widgets/app_icon_widget.dart';
@@ -16,6 +17,8 @@ class ChildActivityScreen extends StatefulWidget {
 }
 
 class _ChildActivityScreenState extends State<ChildActivityScreen> with WidgetsBindingObserver {
+  bool _showOnlyBlocked = false;
+
   @override
   void initState() {
     super.initState();
@@ -56,6 +59,35 @@ class _ChildActivityScreenState extends State<ChildActivityScreen> with WidgetsB
   @override
   Widget build(BuildContext context) {
     final usageProvider = Provider.of<UsageProvider>(context);
+
+    // Build combined list of all apps including blocked apps that may not have usage today
+    final existingPackages = <String>{};
+    for (final u in usageProvider.appUsages) {
+      existingPackages.add(u.packageName);
+    }
+
+    final allUsages = List<AppUsageModel>.from(usageProvider.appUsages);
+    for (final blocked in usageProvider.blockedAppsList) {
+      final pkg = blocked['packageName']?.toString() ?? '';
+      if (pkg.isNotEmpty && !existingPackages.contains(pkg)) {
+        allUsages.add(AppUsageModel(
+          id: 'blocked_$pkg',
+          packageName: pkg,
+          appName: blocked['appName']?.toString() ?? AppNameResolver.resolve(pkg),
+          usageDuration: 0,
+          sessionCount: 0,
+          date: DateTime.now().toIso8601String().split('T')[0],
+          isBlocked: true,
+        ));
+        existingPackages.add(pkg);
+      }
+    }
+
+    final blockedList = allUsages
+        .where((u) => u.isBlocked || usageProvider.isAppBlocked(u.packageName))
+        .toList();
+    final displayedUsages = _showOnlyBlocked ? blockedList : allUsages;
+    final blockedCount = blockedList.length;
 
     return Scaffold(
       appBar: AppBar(
@@ -157,119 +189,164 @@ class _ChildActivityScreenState extends State<ChildActivityScreen> with WidgetsB
               ),
               const SizedBox(height: 20),
 
-              // PARENTAL RESTRICTIONS / BLOCKED APPS BANNER
-              if (usageProvider.blockedAppsList.isNotEmpty) ...[
-                Card(
-                  color: const Color(0xFFFEF2F2),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: const BorderSide(color: Color(0xFFFCA5A5), width: 1.2),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color: Colors.red.shade100,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(Icons.block, color: Colors.red.shade700, size: 18),
+              // PARENTAL RESTRICTIONS SUMMARY BANNER (Tapping switches to Blocked tab)
+              if (blockedCount > 0 && !_showOnlyBlocked) ...[
+                InkWell(
+                  onTap: () => setState(() => _showOnlyBlocked = true),
+                  borderRadius: BorderRadius.circular(16),
+                  child: Card(
+                    color: const Color(0xFFFEF2F2),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: const BorderSide(color: Color(0xFFFCA5A5), width: 1.2),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.red.shade100,
+                              shape: BoxShape.circle,
                             ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                'Apps Blocked by Parent (${usageProvider.blockedAppsList.length})',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15,
-                                  color: Colors.red.shade900,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Your parent has restricted access to these apps. They will be automatically intercepted if opened.',
-                          style: TextStyle(fontSize: 12, color: Colors.red.shade800),
-                        ),
-                        const SizedBox(height: 12),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: usageProvider.blockedAppsList.map((app) {
-                            final name = app['appName']?.toString() ?? app['packageName']?.toString() ?? 'App';
-                            return Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: Colors.red.shade300),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.lock, size: 13, color: Colors.red.shade700),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    name,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.red.shade900,
-                                    ),
+                            child: Icon(Icons.block, color: Colors.red.shade700, size: 18),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '$blockedCount App(s) Blocked by Parent',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    color: Colors.red.shade900,
                                   ),
-                                ],
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ],
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Tap here or switch to the Blocked tab below to inspect restricted apps.',
+                                  style: TextStyle(fontSize: 11, color: Colors.red.shade800),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(Icons.arrow_forward_ios_rounded, size: 13, color: Colors.red.shade700),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
               ],
 
-              const Text('My App Usage', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('App Usage Breakdown', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  if (blockedCount > 0)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade100,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '$blockedCount Blocked',
+                        style: TextStyle(
+                          color: Colors.red.shade800,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
               const SizedBox(height: 12),
 
-              if (usageProvider.isLoading && usageProvider.appUsages.isEmpty)
+              // Segmented Filter Tabs (All Apps vs Blocked Apps)
+              Row(
+                children: [
+                  ChoiceChip(
+                    label: Text('All Apps (${allUsages.length})'),
+                    selected: !_showOnlyBlocked,
+                    selectedColor: AppColors.secondary.withOpacity(0.18),
+                    onSelected: (val) {
+                      if (val) setState(() => _showOnlyBlocked = false);
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                  ChoiceChip(
+                    label: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.block,
+                          size: 14,
+                          color: _showOnlyBlocked ? Colors.white : Colors.red.shade700,
+                        ),
+                        const SizedBox(width: 4),
+                        Text('Blocked ($blockedCount)'),
+                      ],
+                    ),
+                    selected: _showOnlyBlocked,
+                    selectedColor: Colors.red.shade600,
+                    labelStyle: TextStyle(
+                      color: _showOnlyBlocked ? Colors.white : Colors.red.shade800,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    onSelected: (val) {
+                      if (val) setState(() => _showOnlyBlocked = true);
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              if (usageProvider.isLoading && displayedUsages.isEmpty)
                 const Center(
                   child: Padding(
                     padding: EdgeInsets.all(32.0),
                     child: CircularProgressIndicator(),
                   ),
                 )
-              else if (usageProvider.appUsages.isEmpty)
+              else if (displayedUsages.isEmpty)
                 Card(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   child: Padding(
                     padding: const EdgeInsets.all(24.0),
                     child: Column(
                       children: [
-                        const Icon(Icons.hourglass_empty, size: 40, color: Colors.grey),
+                        Icon(
+                          _showOnlyBlocked ? Icons.verified_user_rounded : Icons.hourglass_empty_rounded,
+                          size: 44,
+                          color: _showOnlyBlocked ? AppColors.success : Colors.grey,
+                        ),
                         const SizedBox(height: 12),
-                        const Text(
-                          'No App Usage Recorded Today',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                        Text(
+                          _showOnlyBlocked
+                              ? 'No Blocked Applications'
+                              : 'No App Usage Recorded Today',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                         ),
                         const SizedBox(height: 6),
-                        const Text(
-                          'As you use apps like YouTube, Chrome, or WhatsApp, your usage will appear here automatically.',
+                        Text(
+                          _showOnlyBlocked
+                              ? 'Your parent has not placed restrictions on any apps. You have full access to all your applications.'
+                              : 'As you use apps like YouTube, Chrome, or WhatsApp, your usage will appear here automatically.',
                           textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 12, color: Colors.grey),
+                          style: const TextStyle(fontSize: 12, color: Colors.grey),
                         ),
-                        const SizedBox(height: 14),
-                        OutlinedButton.icon(
-                          onPressed: _refreshStats,
-                          icon: const Icon(Icons.refresh, size: 16),
-                          label: const Text('Check for App Usage Now'),
-                        ),
+                        if (!_showOnlyBlocked) ...[
+                          const SizedBox(height: 14),
+                          OutlinedButton.icon(
+                            onPressed: _refreshStats,
+                            icon: const Icon(Icons.refresh, size: 16),
+                            label: const Text('Check for App Usage Now'),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -278,9 +355,9 @@ class _ChildActivityScreenState extends State<ChildActivityScreen> with WidgetsB
                 ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemCount: usageProvider.appUsages.length,
+                  itemCount: displayedUsages.length,
                   itemBuilder: (context, index) {
-                    final item = usageProvider.appUsages[index];
+                    final item = displayedUsages[index];
                     final isBlocked = item.isBlocked || usageProvider.isAppBlocked(item.packageName);
                     final resolvedName = AppNameResolver.resolve(item.packageName, item.appName);
 
@@ -335,24 +412,65 @@ class _ChildActivityScreenState extends State<ChildActivityScreen> with WidgetsB
                             ],
                           ],
                         ),
-                        subtitle: Text(
-                          item.packageName,
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: isBlocked ? Colors.red.shade700 : Colors.grey.shade600,
-                            fontWeight: isBlocked ? FontWeight.w500 : FontWeight.normal,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 2),
+                            Text(
+                              item.packageName,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: isBlocked ? Colors.red.shade700 : Colors.grey.shade600,
+                                fontWeight: isBlocked ? FontWeight.w500 : FontWeight.normal,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            if (isBlocked) ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                'Restricted by parent • Intercepted if opened',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.red.shade600,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
-                        trailing: Text(
-                          DateFormatter.formatMinutesToDuration(item.usageDuration),
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: isBlocked ? Colors.red.shade700 : AppColors.secondary,
-                            fontSize: 14,
-                          ),
-                        ),
+                        trailing: isBlocked && item.usageDuration == 0
+                            ? Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.red.shade50,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Colors.red.shade300, width: 0.8),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.lock, size: 12, color: Colors.red.shade700),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'Restricted',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.red.shade800,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : Text(
+                                DateFormatter.formatMinutesToDuration(item.usageDuration),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: isBlocked ? Colors.red.shade700 : AppColors.secondary,
+                                  fontSize: 14,
+                                ),
+                              ),
                       ),
                     );
                   },

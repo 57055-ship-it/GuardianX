@@ -98,10 +98,35 @@ class _ParentScreenTimeScreenState extends State<ParentScreenTimeScreen> {
   @override
   Widget build(BuildContext context) {
     final usageProvider = Provider.of<UsageProvider>(context);
-    final displayedUsages = _showOnlyBlocked
-        ? usageProvider.appUsages.where((u) => u.isBlocked).toList()
-        : usageProvider.appUsages;
-    final blockedCount = usageProvider.appUsages.where((u) => u.isBlocked).length;
+
+    // Build combined list of all apps including blocked apps that may not have usage today
+    final existingPackages = <String>{};
+    for (final u in usageProvider.appUsages) {
+      existingPackages.add(u.packageName);
+    }
+
+    final allUsages = List<AppUsageModel>.from(usageProvider.appUsages);
+    for (final blocked in usageProvider.blockedAppsList) {
+      final pkg = blocked['packageName']?.toString() ?? '';
+      if (pkg.isNotEmpty && !existingPackages.contains(pkg)) {
+        allUsages.add(AppUsageModel(
+          id: 'blocked_$pkg',
+          packageName: pkg,
+          appName: blocked['appName']?.toString() ?? AppNameResolver.resolve(pkg),
+          usageDuration: 0,
+          sessionCount: 0,
+          date: DateTime.now().toIso8601String().split('T')[0],
+          isBlocked: true,
+        ));
+        existingPackages.add(pkg);
+      }
+    }
+
+    final blockedList = allUsages
+        .where((u) => u.isBlocked || usageProvider.isAppBlocked(u.packageName))
+        .toList();
+    final displayedUsages = _showOnlyBlocked ? blockedList : allUsages;
+    final blockedCount = blockedList.length;
 
     return Scaffold(
       appBar: AppBar(
@@ -181,12 +206,13 @@ class _ParentScreenTimeScreenState extends State<ParentScreenTimeScreen> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  // Filter Chips
+                  // Filter Tabs
                   Row(
                     children: [
                       ChoiceChip(
-                        label: Text('All (${usageProvider.appUsages.length})'),
+                        label: Text('All Apps (${allUsages.length})'),
                         selected: !_showOnlyBlocked,
+                        selectedColor: AppColors.primary.withOpacity(0.18),
                         onSelected: (val) {
                           if (val) setState(() => _showOnlyBlocked = false);
                         },
@@ -196,12 +222,21 @@ class _ParentScreenTimeScreenState extends State<ParentScreenTimeScreen> {
                         label: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.block, size: 14, color: AppColors.critical),
+                            Icon(
+                              Icons.block,
+                              size: 14,
+                              color: _showOnlyBlocked ? Colors.white : AppColors.critical,
+                            ),
                             const SizedBox(width: 4),
                             Text('Blocked ($blockedCount)'),
                           ],
                         ),
                         selected: _showOnlyBlocked,
+                        selectedColor: AppColors.critical,
+                        labelStyle: TextStyle(
+                          color: _showOnlyBlocked ? Colors.white : AppColors.critical,
+                          fontWeight: FontWeight.bold,
+                        ),
                         onSelected: (val) {
                           if (val) setState(() => _showOnlyBlocked = true);
                         },
@@ -211,8 +246,9 @@ class _ParentScreenTimeScreenState extends State<ParentScreenTimeScreen> {
                   const SizedBox(height: 12),
                   if (displayedUsages.isEmpty)
                     Card(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       child: Padding(
-                        padding: const EdgeInsets.all(16.0),
+                        padding: const EdgeInsets.all(24.0),
                         child: Column(
                           children: [
                             if (usageProvider.error != null) ...[
@@ -223,10 +259,23 @@ class _ParentScreenTimeScreenState extends State<ParentScreenTimeScreen> {
                               ),
                               const SizedBox(height: 8),
                             ],
+                            Icon(
+                              _showOnlyBlocked ? Icons.verified_user_rounded : Icons.hourglass_empty_rounded,
+                              size: 40,
+                              color: _showOnlyBlocked ? AppColors.success : Colors.grey,
+                            ),
+                            const SizedBox(height: 10),
                             Text(
                               _showOnlyBlocked
-                                  ? 'No applications are currently blocked for this child.'
-                                  : 'No application usage data logged for today.\n\nNote: Detailed per-app usage breakdowns are supported on Android child devices. Ensure the child device has granted App Usage Access in Android Settings.',
+                                  ? 'No Blocked Applications'
+                                  : 'No Application Usage Data Logged Today',
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              _showOnlyBlocked
+                                  ? 'No applications are currently restricted for this child. To restrict an app, switch to the "All Apps" tab and tap "Block".'
+                                  : 'No application usage has been recorded today yet.\nEnsure the child device has granted App Usage Access in Android Settings.',
                               textAlign: TextAlign.center,
                               style: const TextStyle(fontSize: 12, color: Colors.grey),
                             ),
